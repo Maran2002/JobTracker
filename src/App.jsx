@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { HeroUIProvider } from '@heroui/react';
 import { Toaster } from 'vibe-toast';
 import AuthGuard from './routes/AuthGuard';
 import MainLayout from './layouts/MainLayout';
@@ -31,33 +30,31 @@ const NotFound = () => <div className="p-10 text-center"><h1>404 - Not Found</h1
 
 function App() {
   return (
-    <HeroUIProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <AuthGuard>
-                <MainLayout>
-                  <Dashboard />
-                </MainLayout>
-              </AuthGuard>
-            } 
-          />
-          
-          {/* Default Redirects */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <AuthGuard>
+              <MainLayout>
+                <Dashboard />
+              </MainLayout>
+            </AuthGuard>
+          } 
+        />
+        
+        {/* Default Redirects */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       
       {/* Toast Notifications */}
       <Toaster position="top-right" richColors closeButton />
-    </HeroUIProvider>
+    </Router>
   );
 }
 
