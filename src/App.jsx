@@ -1,59 +1,88 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'vibe-toast';
 import AuthGuard from './routes/AuthGuard';
 import MainLayout from './layouts/MainLayout';
+import useThemeStore from './store/useThemeStore';
 
-// Placeholder components for routing
-const Login = () => <div className="p-10"><h1>Login Page</h1></div>;
-const Dashboard = () => (
-  <div className="space-y-4">
-    <h1 className="text-2xl font-bold">Dashboard</h1>
-    <p className="text-default-500">Welcome back! Here's an overview of your job applications.</p>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-      <div className="p-6 rounded-xl bg-content2 border border-divider">
-        <h3 className="text-lg font-semibold">Applied</h3>
-        <p className="text-3xl font-bold mt-2">12</p>
-      </div>
-      <div className="p-6 rounded-xl bg-content2 border border-divider">
-        <h3 className="text-lg font-semibold">Interviews</h3>
-        <p className="text-3xl font-bold mt-2">4</p>
-      </div>
-      <div className="p-6 rounded-xl bg-content2 border border-divider">
-        <h3 className="text-lg font-semibold">Offers</h3>
-        <p className="text-3xl font-bold mt-2">1</p>
-      </div>
-    </div>
+// Auth pages
+import Login    from './pages/auth/Login';
+import Register from './pages/auth/Register';
+
+// Main pages
+import Dashboard    from './pages/Dashboard';
+import Applications from './pages/Applications';
+import Pipeline     from './pages/Pipeline';
+import Schedule     from './pages/Schedule';
+import Analytics    from './pages/Analytics';
+import Settings     from './pages/Settings';
+
+// 404
+const NotFound = () => (
+  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'60vh', gap:'16px' }}>
+    <div style={{ fontSize:'72px', fontWeight:'900', color:'var(--ct-primary)', opacity:0.3 }}>404</div>
+    <div style={{ fontSize:'20px', fontWeight:'700', color:'var(--ct-text)' }}>Page not found</div>
+    <a href="/dashboard" style={{ color:'var(--ct-primary)', fontWeight:'600', fontSize:'14px' }}>← Back to Dashboard</a>
   </div>
 );
-const NotFound = () => <div className="p-10 text-center"><h1>404 - Not Found</h1></div>;
+
+// Wrap each protected page in MainLayout
+const ProtectedPage = ({ children, searchPlaceholder }) => (
+  <AuthGuard>
+    <MainLayout searchPlaceholder={searchPlaceholder}>
+      {children}
+    </MainLayout>
+  </AuthGuard>
+);
 
 function App() {
+  const { initTheme } = useThemeStore();
+
+  // Restore persisted theme on mount
+  useEffect(() => { initTheme(); }, [initTheme]);
+
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        
-        {/* Protected Routes */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <AuthGuard>
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
-            </AuthGuard>
-          } 
-        />
-        
-        {/* Default Redirects */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<NotFound />} />
+        {/* Public */}
+        <Route path="/login"    element={<Login />}    />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected */}
+        <Route path="/dashboard" element={
+          <ProtectedPage searchPlaceholder="Search applications...">
+            <Dashboard />
+          </ProtectedPage>
+        } />
+        <Route path="/applications" element={
+          <ProtectedPage searchPlaceholder="Search applications...">
+            <Applications />
+          </ProtectedPage>
+        } />
+        <Route path="/pipeline" element={
+          <ProtectedPage searchPlaceholder="Search pipeline...">
+            <Pipeline />
+          </ProtectedPage>
+        } />
+        <Route path="/schedule" element={
+          <ProtectedPage searchPlaceholder="Search interviews...">
+            <Schedule />
+          </ProtectedPage>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedPage searchPlaceholder="Search analytics...">
+            <Analytics />
+          </ProtectedPage>
+        } />
+        <Route path="/settings" element={
+          <ProtectedPage searchPlaceholder="Search settings...">
+            <Settings />
+          </ProtectedPage>
+        } />
+
+        {/* Default */}
+        <Route path="/"  element={<Navigate to="/dashboard" replace />} />
+        <Route path="*"  element={<NotFound />} />
       </Routes>
-      
-      {/* Toast Notifications */}
-      <Toaster position="top-right" richColors closeButton />
     </Router>
   );
 }
