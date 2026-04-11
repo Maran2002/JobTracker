@@ -1,6 +1,6 @@
 # CareerTrack — Premium Job Tracking Platform
 
-> 🚧 **This project is currently under active development.** Features, UI, and APIs are subject to change.
+> 🚧 **This project is currently under active development.**
 
 ---
 
