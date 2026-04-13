@@ -1,34 +1,11 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Link2, MoreVertical, Map, Video } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, MapPin, Link2, MoreVertical, Map, Video, Plus } from 'lucide-react';
+import api from '../api/gateway';
+import { toast } from 'vibe-toast';
 
-const interviews = [
-  {
-    id:1, color:'#4f46e5', logo:'G',  logoColor:'#4285f4',
-    title:'Product Designer',   company:'Google',  location:'San Francisco, CA',
-    date:'May 24, 2024', time:'10:30 AM – 11:30 AM', venue:'Google Meet',
-    type:'VIDEO CALL', typeClass:'badge-video',
-  },
-  {
-    id:2, color:'#f59e0b', logo:'Fk', logoColor:'#047857',
-    title:'Senior UX Designer', company:'Flipkart', location:'Bengaluru, KA',
-    date:'May 26, 2024', time:'02:00 PM – 04:00 PM', venue:'Main Office, Block B',
-    type:'ON-SITE', typeClass:'badge-onsite',
-  },
-  {
-    id:3, color:'#ef4444', logo:'Z', logoColor:'#e11d48',
-    title:'Product Manager',    company:'Zomato',   location:'Gurugram, HR',
-    date:'May 28, 2024', time:'11:00 AM – 12:00 PM', venue:'Zoom Link Provided',
-    type:'VIDEO CALL', typeClass:'badge-video',
-  },
-  {
-    id:4, color:'#10b981', logo:'My', logoColor:'#db2777',
-    title:'Visual Designer',    company:'Myntra',   location:'Remote',
-    date:'June 02, 2024', time:'03:30 PM – 04:30 PM', venue:'Google Meet',
-    type:'VIDEO CALL', typeClass:'badge-video',
-  },
-];
 
-const InterviewRow = ({ itv }) => (
+
+const InterviewRow = ({ itv, onDelete }) => (
   <div className="timeline-item" id={`interview-${itv.id}`}>
     {/* Left color bar */}
     <div className="timeline-left-bar" style={{ background: itv.color }} />
@@ -59,14 +36,44 @@ const InterviewRow = ({ itv }) => (
 
     {/* Actions */}
     <div style={{ display:'flex', alignItems:'center', gap:'6px', flexShrink:0 }}>
-      <button className="icon-btn" aria-label="Join link"><Link2 size={14} /></button>
-      <button className="icon-btn" aria-label="Options"><MoreVertical size={14} /></button>
+      <button className="icon-btn" aria-label="Join link" onClick={() => { if (itv.venue?.includes('Google Meet') || itv.venue?.includes('Zoom')) { window.open('https://meet.google.com', '_blank'); } else { toast.info('No join link available'); } }}><Link2 size={14} /></button>
+      <button className="icon-btn" aria-label="Options" onClick={() => onDelete(itv._id)}><MoreVertical size={14} /></button>
     </div>
   </div>
 );
 
 const Schedule = () => {
   const [view, setView] = useState('list');
+  const [interviews, setInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchInterviews = async () => {
+    try {
+      const { data } = await api.get('/interviews');
+      setInterviews(data);
+    } catch (error) {
+      console.error('Error fetching interviews', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInterviews();
+  }, []);
+
+  const handleScheduleSync = () => toast.success('Calendar sync initiated! (Pro feature)');
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Remove this interview?')) return;
+    try {
+      await api.delete(`/interviews/${id}`);
+      toast.success('Interview removed');
+      fetchInterviews();
+    } catch {
+      toast.error('Failed to remove interview');
+    }
+  };
 
   return (
     <div className="page-enter">
@@ -143,7 +150,13 @@ const Schedule = () => {
       {/* Interview list */}
       {view === 'list' && (
         <div style={{ marginBottom:'22px' }}>
-          {interviews.map(itv => <InterviewRow key={itv.id} itv={itv} />)}
+          {loading ? (
+            <div style={{ padding:'28px', textAlign:'center', color:'var(--ct-text-muted)' }}>Loading interviews…</div>
+          ) : interviews.length === 0 ? (
+            <div style={{ padding:'28px', textAlign:'center', color:'var(--ct-text-muted)' }}>No interviews scheduled yet. Add one to get started.</div>
+          ) : (
+            interviews.map(itv => <InterviewRow key={itv._id} itv={itv} onDelete={handleDelete} />)
+          )}
         </div>
       )}
 
@@ -186,7 +199,7 @@ const Schedule = () => {
           <p style={{ fontSize:'13px', color:'var(--ct-text-muted)', lineHeight:'1.65', marginBottom:'18px' }}>
             Sync your Google Calendar to receive SMS alerts 15 minutes before any interview.
           </p>
-          <button className="btn-secondary" id="enable-sync-btn" style={{ width:'100%', justifyContent:'center' }}>
+          <button className="btn-secondary" id="enable-sync-btn" onClick={handleScheduleSync} style={{ width:'100%', justifyContent:'center' }}>
             Enable Sync
           </button>
         </div>

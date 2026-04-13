@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Briefcase } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
+import api from '../../api/gateway';
 
 const Register = () => {
   const navigate  = useNavigate();
-  const { mockLogin } = useAuthStore();
+  const { login } = useAuthStore();
 
   const [form, setForm]         = useState({ name: '', email: '', password: '', confirm: '' });
   const [showPass, setShowPass] = useState(false);
@@ -32,9 +33,15 @@ const Register = () => {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
-    mockLogin(form.email, form.password);
-    navigate('/dashboard');
+    
+    try {
+      const { data } = await api.post('/auth/register', { name: form.name, email: form.email, password: form.password });
+      login(data, data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
+      setLoading(false);
+    }
   };
 
   const strength = (() => {

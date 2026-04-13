@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import useThemeStore from '../store/useThemeStore';
 import useAuthStore  from '../store/useAuthStore';
+import { toast } from 'vibe-toast';
 
 /* ── Toggle row ── */
 const ToggleRow = ({ id, label, description, checked, onChange }) => (
@@ -67,6 +68,7 @@ const Settings = () => {
   const handleSave = () => {
     updateUser({ name: profile.name, email: profile.email });
     setSaved(true);
+    toast.success('Profile saved successfully!');
     setTimeout(() => setSaved(false), 2500);
   };
 
@@ -244,8 +246,7 @@ const Settings = () => {
         {[
           { label:'Change Password', icon:Lock,      id:'change-pass-btn' },
           { label:'Two-Factor Authentication', icon:Shield, id:'2fa-btn' },
-          { label:'Connected Accounts (Google, LinkedIn)', icon:Shield, id:'connected-accounts-btn' },
-          { label:'Download My Data', icon:Shield,   id:'download-data-btn' },
+
         ].map(item => (
           <button
             key={item.id}
@@ -280,6 +281,7 @@ const Settings = () => {
             }}
             onMouseEnter={e => { e.currentTarget.style.background='var(--ct-danger)'; e.currentTarget.style.color='#fff'; }}
             onMouseLeave={e => { e.currentTarget.style.background='none';             e.currentTarget.style.color='var(--ct-danger)'; }}
+            onClick={() => toast.error('Account deletion requires email confirmation. Check your inbox.')}
           >
             Delete Account
           </button>

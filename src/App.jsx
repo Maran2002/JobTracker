@@ -3,18 +3,20 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AuthGuard from './routes/AuthGuard';
 import MainLayout from './layouts/MainLayout';
 import useThemeStore from './store/useThemeStore';
+import { Toaster } from 'vibe-toast';
 
 // Auth pages
 import Login    from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
 // Main pages
-import Dashboard    from './pages/Dashboard';
-import Applications from './pages/Applications';
-import Pipeline     from './pages/Pipeline';
-import Schedule     from './pages/Schedule';
-import Analytics    from './pages/Analytics';
-import Settings     from './pages/Settings';
+import Dashboard       from './pages/Dashboard';
+import Applications    from './pages/Applications';
+import AddApplication  from './pages/AddApplication';
+import Pipeline        from './pages/Pipeline';
+import Schedule        from './pages/Schedule';
+import Analytics       from './pages/Analytics';
+import Settings        from './pages/Settings';
 
 // 404
 const NotFound = () => (
@@ -42,6 +44,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" richColors closeButton />
       <Routes>
         {/* Public */}
         <Route path="/login"    element={<Login />}    />
@@ -56,6 +59,11 @@ function App() {
         <Route path="/applications" element={
           <ProtectedPage searchPlaceholder="Search applications...">
             <Applications />
+          </ProtectedPage>
+        } />
+        <Route path="/applications/new" element={
+          <ProtectedPage searchPlaceholder="New application...">
+            <AddApplication />
           </ProtectedPage>
         } />
         <Route path="/pipeline" element={

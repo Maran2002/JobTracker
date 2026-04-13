@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Users, Settings2, Clock, ChevronRight } from 'lucide-react';
+import api from '../api/gateway';
 
 /* ── Bar chart: Applications per month ── */
 const BarChart = ({ activeFilter }) => {
@@ -148,6 +149,21 @@ const StatChip = ({ label, value, icon:Icon, color }) => (
 /* ── Main ── */
 const Analytics = () => {
   const [chartFilter, setChartFilter] = useState('all');
+  const [stats, setStats] = useState({ totalApplications: 0, byStatus: {} });
+
+  useEffect(() => {
+    api.get('/analytics')
+      .then(res => setStats(res.data))
+      .catch(err => console.error('Analytics fetch error', err));
+  }, []);
+
+  const total = stats.totalApplications;
+  const byStatus = stats.byStatus || {};
+  const interviewing = byStatus['Interviewing'] || 0;
+  const offers = byStatus['Offer Received'] || 0;
+  const rejected = byStatus['Rejected'] || 0;
+  const applied = byStatus['Applied'] || 0;
+  const screening = byStatus['Screening'] || 0;
 
   return (
     <div className="page-enter">
@@ -186,6 +202,9 @@ const Analytics = () => {
         <div className="ct-card" style={{ padding:'22px', minWidth:'280px' }}>
           <div className="section-title" style={{ marginBottom:'18px' }}>Status Distribution</div>
           <DonutChart />
+          <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '12px', color: 'var(--ct-text-muted)' }}>
+            Total tracked: <strong style={{ color: 'var(--ct-text)' }}>{total}</strong> applications
+          </div>
         </div>
       </div>
 
@@ -194,10 +213,10 @@ const Analytics = () => {
         {/* Conversion funnel */}
         <div className="ct-card" style={{ padding:'22px', borderLeft:'4px solid #6366f1' }}>
           <div className="section-title" style={{ marginBottom:'18px' }}>Conversion Funnel</div>
-          <FunnelRow label="Applied"     count={142} pct={100} color="#4f46e5" />
-          <FunnelRow label="Screening"   count={68}  pct={48}  color="#10b981" />
-          <FunnelRow label="Technical"   count={24}  pct={17}  color="#f59e0b" />
-          <FunnelRow label="Final Round" count={9}   pct={6}   color="#ef4444" />
+          <FunnelRow label="Applied"     count={applied + screening + interviewing + offers + rejected} pct={100} color="#4f46e5" />
+          <FunnelRow label="Screening"   count={screening + interviewing + offers} pct={total > 0 ? Math.round(((screening + interviewing + offers) / total) * 100) : 0}  color="#10b981" />
+          <FunnelRow label="Interviewing" count={interviewing + offers} pct={total > 0 ? Math.round(((interviewing + offers) / total) * 100) : 0}  color="#f59e0b" />
+          <FunnelRow label="Offer"       count={offers}  pct={total > 0 ? Math.round((offers / total) * 100) : 0}   color="#ef4444" />
         </div>
 
         {/* Applications by role */}

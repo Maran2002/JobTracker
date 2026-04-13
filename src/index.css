@@ -364,7 +364,7 @@ input, textarea, select { font-family: inherit; }
 .header-user-role {
   font-size: 10px;
   color: var(--ct-text-muted);
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.07em;
 }
 .header-avatar {
@@ -834,11 +834,8 @@ input, textarea, select { font-family: inherit; }
 
 /* FAB */
 .fab {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  width: 52px;
-  height: 52px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4f46e5, #6366f1);
   color: white;
@@ -935,6 +932,120 @@ input, textarea, select { font-family: inherit; }
   border-bottom: 1px solid var(--ct-border);
 }
 .settings-row:last-child { border-bottom: none; }
+
+/* ============================================================
+   SPIN ANIMATION (used by Loader2)
+   ============================================================ */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   KANBAN DRAG & DROP ENHANCEMENTS
+   ============================================================ */
+
+/* Card being dragged — ghost style */
+.kanban-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Drop zone — column highlight handled inline, but add card slot hint */
+.kanban-drop-hint {
+  background: var(--ct-primary-light);
+  border: 2px dashed var(--ct-primary);
+  border-radius: 11px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ct-primary);
+  margin-bottom: 8px;
+  animation: fadeIn 0.18s ease;
+}
+
+/* Expanded kanban column width for richer cards */
+.kanban-col {
+  min-width: 230px;
+  max-width: 230px;
+}
+
+/* ============================================================
+   MULTI-STEP FORM — ADD APPLICATION
+   ============================================================ */
+
+/* Select-pill group row */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Color picker swatch */
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.18s, border 0.18s;
+  border: 3px solid transparent;
+  flex-shrink: 0;
+}
+.color-swatch.active {
+  border-color: var(--ct-text);
+  transform: scale(1.2);
+}
+
+/* Step connector line override for form */
+.step-connector {
+  position: absolute;
+  top: 17px;
+  left: 17px;
+  right: 17px;
+  height: 2px;
+  background: var(--ct-border);
+  z-index: 0;
+}
+.step-connector-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--ct-primary);
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Review grid item */
+.review-field {
+  background: var(--ct-bg-secondary);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.review-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ct-text-muted);
+}
+.review-field-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ct-text);
+  word-break: break-word;
+}
+
+/* Textarea in form */
+.ct-input[rows] {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
 
 /* ============================================================
    MOBILE RESPONSIVE

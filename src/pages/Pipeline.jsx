@@ -1,168 +1,381 @@
-import React from 'react';
-import { SlidersHorizontal, MoreHorizontal, Clock, Plus } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  SlidersHorizontal, MoreHorizontal, Clock, Plus,
+  ExternalLink, GripVertical, Briefcase, MapPin,
+  DollarSign, Star, Loader2,
+} from "lucide-react";
+import api from "../api/gateway";
+import { toast } from "vibe-toast";
 
-const columns = [
-  {
-    id: 'applied', label: 'Applied', count: 12, accentColor: '#4f46e5',
-    cards: [
-      { id:1, tag:'Product',    tagClass:'badge-tag',        title:'Senior Product Designer', company:'Linear',        detail:'$160k – $190k',  info:'Applied 2d ago',   infoIcon:'clock' },
-      { id:2, tag:'Design',     tagClass:'badge-tag-design', title:'Visual Identity Lead',   company:'Stripe · Remote', detail:'Applied 2d ago', info:'',                 infoIcon:'clock' },
-    ],
-  },
-  {
-    id: 'screening', label: 'Screening', count: 4, accentColor: '#10b981',
-    cards: [
-      { id:3, tag:'Engineering',tagClass:'badge-tag-eng',  title:'Founding UI Engineer', company:'Perplexity AI', detail:'$180k+', info:'', infoIcon:'', badge:'Recruiter Screen', badgeTmr:true },
-    ],
-  },
-  {
-    id: 'interview', label: 'Interview', count: 3, accentColor: '#6366f1',
-    cards: [
-      { id:4, tag:'Product Design',tagClass:'badge-tag-design', title:'UX Research Lead', company:'Airbnb · SF', detail:'Round 3: Portfolio Review', info:'', infoIcon:'', badge:'Oct 24, 2:10 PM', badgeTeal:true },
-    ],
-  },
-  {
-    id: 'offer', label: 'Offer', count: 1, accentColor: '#f59e0b',
-    cards: [
-      { id:5, tag:'Management', tagClass:'badge-tag-mgmt', title:'Design Manager', company:'Vercel · Full-time', detail:'$215k Salary · 0.15% Equity', info:'Decision by Fri', infoIcon:'', orange:true },
-    ],
-  },
-  {
-    id: 'rejected', label: 'Rejected', count: 1, accentColor: '#ef4444',
-    cards: [
-      { id:6, tag:'Product', tagClass:'badge-tag', title:'Director of Product', company:'Meta · Hybrid', detail:'Post-interview', info:'', infoIcon:'', rejected:true },
-    ],
-  },
+/* ── Column config ───────────────────────────── */
+const COLUMN_DEFS = [
+  { id: "Applied",       label: "Applied",     accentColor: "#4f46e5", emoji: "📨" },
+  { id: "Screening",     label: "Screening",   accentColor: "#06b6d4", emoji: "🔍" },
+  { id: "Interviewing",  label: "Interview",   accentColor: "#10b981", emoji: "🎤" },
+  { id: "Offer Received",label: "Offer",       accentColor: "#f59e0b", emoji: "🏆" },
+  { id: "Rejected",      label: "Rejected",    accentColor: "#ef4444", emoji: "❌" },
 ];
 
-const KanbanCard = ({ card }) => (
-  <div className="kanban-card" id={`card-${card.id}`}>
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'2px' }}>
-      <span className={`badge ${card.tagClass}`}>{card.tag}</span>
-      <button style={{ background:'none', border:'none', color:'var(--ct-text-muted)', cursor:'pointer', padding:'2px' }}>
-        <MoreHorizontal size={14} />
+const PRIORITY_COLORS = { High: "#ef4444", Medium: "#f59e0b", Low: "#10b981" };
+
+/* ── drag state ref ──────────────────────────── */
+let dragState = { cardId: null, fromCol: null };
+
+/* ── KanbanCard ──────────────────────────────── */
+const KanbanCard = ({ card, onDragStart, onDragEnd, isDragging }) => {
+  const navigate = useNavigate();
+  const dateStr = card.dateApplied
+    ? new Date(card.dateApplied).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })
+    : "";
+
+  return (
+    <div
+      id={`card-${card._id}`}
+      className="kanban-card"
+      draggable
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(card._id); }}
+      onDragEnd={onDragEnd}
+      style={{
+        opacity: isDragging ? 0.45 : 1,
+        transform: isDragging ? "rotate(2deg) scale(0.97)" : undefined,
+        cursor: "grab",
+        userSelect: "none",
+        position: "relative",
+        transition: "opacity 0.18s, transform 0.18s",
+      }}
+    >
+      {/* grip handle (visual only) */}
+      <div style={{
+        position: "absolute", top: "10px", right: "10px",
+        color: "var(--ct-text-muted)", opacity: 0.4,
+      }}>
+        <GripVertical size={12} />
+      </div>
+
+      {/* company + menu row */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+        <div style={{
+          width: "32px", height: "32px", borderRadius: "9px", flexShrink: 0,
+          background: `${card.color || "#4f46e5"}22`,
+          color: card.color || "#4f46e5",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontWeight: "800", fontSize: "12px",
+        }}>
+          {card.logo || card.company?.slice(0, 2).toUpperCase() || "C"}
+        </div>
+        <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--ct-text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {card.company}
+        </span>
+      </div>
+
+      {/* title */}
+      <div className="kanban-card-title" style={{ paddingRight: "14px" }}>{card.title}</div>
+
+      {/* meta pills */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "8px" }}>
+        {card.location && (
+          <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "10px", color: "var(--ct-text-muted)", fontWeight: "600" }}>
+            <MapPin size={9} />{card.location}
+          </span>
+        )}
+        {card.salary && card.salary !== "Not Disclosed" && (
+          <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "10px", color: "var(--ct-text-muted)", fontWeight: "600" }}>
+            <DollarSign size={9} />{card.salary}
+          </span>
+        )}
+      </div>
+
+      {/* footer row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {card.priority && (
+            <span style={{
+              fontSize: "9px", fontWeight: "700", padding: "2px 7px", borderRadius: "10px",
+              background: `${PRIORITY_COLORS[card.priority]}18`,
+              color: PRIORITY_COLORS[card.priority],
+              border: `1px solid ${PRIORITY_COLORS[card.priority]}30`,
+              textTransform: "uppercase", letterSpacing: "0.06em",
+            }}>{card.priority}</span>
+          )}
+          {card.jobType && (
+            <span style={{ fontSize: "9px", fontWeight: "600", color: "var(--ct-text-muted)", background: "var(--ct-bg-secondary)", padding: "2px 7px", borderRadius: "10px" }}>
+              {card.jobType}
+            </span>
+          )}
+        </div>
+        {dateStr && (
+          <div className="kanban-card-footer" style={{ fontSize: "10px" }}>
+            <Clock size={10} /> {dateStr}
+          </div>
+        )}
+      </div>
+
+      {/* job URL quick link */}
+      {card.jobUrl && (
+        <a
+          href={card.jobUrl} target="_blank" rel="noreferrer"
+          style={{ display: "flex", alignItems: "center", gap: "3px", marginTop: "8px", fontSize: "10px", color: "var(--ct-primary)", fontWeight: "600", textDecoration: "none" }}
+          onClick={e => e.stopPropagation()}
+        >
+          <ExternalLink size={9} /> View posting
+        </a>
+      )}
+    </div>
+  );
+};
+
+/* ── KanbanColumn ────────────────────────────── */
+const KanbanColumn = ({ col, draggingId, onDragStart, onDragEnd, onDrop, onAddClick, updating }) => {
+  const [over, setOver] = useState(false);
+
+  return (
+    <div
+      key={col.id}
+      className="kanban-col"
+      id={`kanban-${col.id}`}
+      style={{
+        outline: over ? `2px solid ${col.accentColor}` : "2px solid transparent",
+        outlineOffset: "-2px",
+        background: over ? `${col.accentColor}08` : undefined,
+        transition: "outline-color 0.18s, background 0.18s",
+      }}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => { e.preventDefault(); setOver(false); onDrop(col.id); }}
+    >
+      {/* Column header */}
+      <div className="kanban-col-header">
+        <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+          <span style={{ fontSize: "14px" }}>{col.emoji}</span>
+          <span className="kanban-col-title">{col.label}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{
+            minWidth: "20px", height: "20px", borderRadius: "10px",
+            background: `${col.accentColor}20`, color: col.accentColor,
+            fontSize: "11px", fontWeight: "700",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px",
+          }}>
+            {col.cards.length}
+          </span>
+          {updating === col.id && <Loader2 size={12} style={{ color: col.accentColor, animation: "spin 1s linear infinite" }} />}
+        </div>
+      </div>
+
+      {/* Cards */}
+      <div style={{ minHeight: "40px" }}>
+        {col.cards.map((card) => (
+          <KanbanCard
+            key={card._id}
+            card={card}
+            isDragging={draggingId === card._id}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+          />
+        ))}
+
+        {/* Empty drop zone hint */}
+        {col.cards.length === 0 && (
+          <div style={{
+            padding: "20px 12px", textAlign: "center", borderRadius: "10px",
+            border: "1.5px dashed var(--ct-border)",
+            color: "var(--ct-text-muted)", fontSize: "11px", fontWeight: "600",
+            background: over ? `${col.accentColor}08` : "transparent",
+            transition: "all 0.18s",
+          }}>
+            Drop cards here
+          </div>
+        )}
+      </div>
+
+      {/* Add card button */}
+      <button
+        onClick={() => onAddClick(col.id)}
+        style={{
+          width: "100%", marginTop: "8px",
+          background: "none", border: "1px dashed var(--ct-border)",
+          borderRadius: "9px", padding: "9px",
+          color: "var(--ct-text-muted)", fontSize: "12px",
+          cursor: "pointer", display: "flex", alignItems: "center",
+          justifyContent: "center", gap: "6px", transition: "all 0.18s",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = col.accentColor; e.currentTarget.style.color = col.accentColor; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ct-border)"; e.currentTarget.style.color = "var(--ct-text-muted)"; }}
+      >
+        <Plus size={13} /> Add application
       </button>
     </div>
-    <div className="kanban-card-title">{card.title}</div>
-    <div className="kanban-card-sub">{card.company}</div>
+  );
+};
 
-    {card.detail && (
+/* ══════════ Pipeline Page ═══════════ */
+const Pipeline = () => {
+  const navigate = useNavigate();
+  const [columns, setColumns] = useState(
+    COLUMN_DEFS.map(c => ({ ...c, cards: [] }))
+  );
+  const [draggingId, setDraggingId]   = useState(null);
+  const [updating,   setUpdating]     = useState(null); // colId being updated
+  const [loading,    setLoading]      = useState(true);
+
+  /* ── fetch ── */
+  const fetchPipeline = useCallback(async () => {
+    try {
+      const { data } = await api.get("/applications");
+      setColumns(
+        COLUMN_DEFS.map(col => ({
+          ...col,
+          cards: data.filter(a => a.status === col.id),
+        }))
+      );
+    } catch {
+      toast.error("Failed to load pipeline.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchPipeline(); }, [fetchPipeline]);
+
+  /* ── drag handlers ── */
+  const handleDragStart = useCallback((cardId) => {
+    const fromCol = columns.find(c => c.cards.some(cd => cd._id === cardId))?.id || null;
+    dragState = { cardId, fromCol };
+    setDraggingId(cardId);
+  }, [columns]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggingId(null);
+    dragState = { cardId: null, fromCol: null };
+  }, []);
+
+  const handleDrop = useCallback(async (toColId) => {
+    const { cardId, fromCol } = dragState;
+    if (!cardId || fromCol === toColId) {
+      setDraggingId(null);
+      return;
+    }
+
+    // optimistic update
+    setColumns(prev => {
+      const card = prev.find(c => c.id === fromCol)?.cards.find(cd => cd._id === cardId);
+      if (!card) return prev;
+      return prev.map(col => {
+        if (col.id === fromCol) return { ...col, cards: col.cards.filter(cd => cd._id !== cardId) };
+        if (col.id === toColId) return { ...col, cards: [{ ...card, status: toColId }, ...col.cards] };
+        return col;
+      });
+    });
+
+    setDraggingId(null);
+    setUpdating(toColId);
+
+    try {
+      await api.put(`/applications/${cardId}`, { status: toColId });
+      toast.success(`Moved to ${toColId} ✓`);
+    } catch (err) {
+      toast.error("Failed to update status. Reverting…");
+      fetchPipeline(); // revert on error
+    } finally {
+      setUpdating(null);
+    }
+  }, [fetchPipeline]);
+
+  const handleAddClick = (statusId) => {
+    navigate("/applications/new", { state: { defaultStatus: statusId } });
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "300px", gap: "12px", color: "var(--ct-text-muted)" }}>
+        <Loader2 size={22} style={{ animation: "spin 1s linear infinite" }} />
+        <span style={{ fontSize: "14px", fontWeight: "600" }}>Loading pipeline…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-enter">
+      {/* Breadcrumb */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px", fontSize: "12px", color: "var(--ct-text-muted)" }}>
+        <span>Recruitment</span>
+        <span>›</span>
+        <span style={{ color: "var(--ct-primary)", fontWeight: "600" }}>Pipeline Kanban</span>
+      </div>
+
+      {/* Header */}
       <div style={{
-        fontSize:'11px', fontWeight:'600', color: card.orange ? 'var(--ct-warning)' : 'var(--ct-text-muted)',
-        marginBottom:'8px', background: card.orange ? 'var(--ct-warning-light)' : 'transparent',
-        padding: card.orange ? '4px 8px' : '0', borderRadius:'6px', display:'inline-block',
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        marginBottom: "22px", flexWrap: "wrap", gap: "12px",
       }}>
-        {card.detail}
-      </div>
-    )}
-
-    {card.badge && (
-      <div style={{
-        fontSize:'11px', fontWeight:'600', color: card.badgeTmr ? 'var(--ct-warning)' : card.badgeTeal ? 'var(--ct-teal)' : 'var(--ct-text-muted)',
-        background: card.badgeTmr ? 'var(--ct-warning-light)' : card.badgeTeal ? 'rgba(20,184,166,0.1)' : 'transparent',
-        padding:'3px 8px', borderRadius:'6px', display:'inline-block', marginBottom:'8px',
-      }}>
-        {card.badge}
-      </div>
-    )}
-
-    {card.info && (
-      <div className="kanban-card-footer">
-        {card.infoIcon === 'clock' && <Clock size={11} />}
-        {card.info}
-      </div>
-    )}
-
-    {card.rejected && (
-      <div style={{ fontSize:'11px', color:'var(--ct-danger)', fontWeight:'600', background:'var(--ct-danger-light)', padding:'3px 8px', borderRadius:'6px', display:'inline-block' }}>
-        Post-interview
-      </div>
-    )}
-  </div>
-);
-
-const Pipeline = () => (
-  <div className="page-enter">
-    {/* Header */}
-    <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'6px', fontSize:'12px', color:'var(--ct-text-muted)' }}>
-      <span>Recruitment</span>
-      <span>›</span>
-      <span style={{ color:'var(--ct-primary)', fontWeight:'600' }}>Pipeline Kanban</span>
-    </div>
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'22px', flexWrap:'wrap', gap:'12px' }}>
-      <h1 className="page-title">Application Pipeline</h1>
-      <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-        {/* Avatar stack */}
-        <div style={{ display:'flex' }}>
-          {['#4f46e5','#10b981','#f59e0b'].map((c,i) => (
-            <div key={i} style={{
-              width:'28px', height:'28px', borderRadius:'50%', background:c,
-              border:'2px solid var(--ct-card)', marginLeft: i ? '-8px' : '0',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              color:'white', fontSize:'11px', fontWeight:'700',
-            }}>
-              {String.fromCharCode(65+i)}
-            </div>
-          ))}
-          <div style={{
-            width:'28px', height:'28px', borderRadius:'50%',
-            background:'var(--ct-bg)', border:'2px solid var(--ct-border)',
-            marginLeft:'-8px', display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:'10px', fontWeight:'700', color:'var(--ct-text-muted)',
-          }}>+3</div>
+        <div>
+          <h1 className="page-title">Application Pipeline</h1>
+          <p className="page-subtitle" style={{ marginTop: "4px" }}>
+            Drag cards between columns to update status instantly.
+          </p>
         </div>
-        <button className="btn-secondary" id="pipeline-filter-btn"><SlidersHorizontal size={14} />Filters</button>
-      </div>
-    </div>
 
-    {/* Kanban board */}
-    <div className="kanban-board">
-      {columns.map((col) => (
-        <div key={col.id} className="kanban-col" id={`kanban-${col.id}`}>
-          {/* Column header */}
-          <div className="kanban-col-header">
-            <div style={{ display:'flex', alignItems:'center', gap:'7px' }}>
-              <div style={{ width:'8px', height:'8px', borderRadius:'50%', background:col.accentColor }} />
-              <span className="kanban-col-title">{col.label}</span>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-              <span style={{
-                minWidth:'20px', height:'20px', borderRadius:'10px',
-                background:`${col.accentColor}20`, color:col.accentColor,
-                fontSize:'11px', fontWeight:'700', display:'flex', alignItems:'center', justifyContent:'center',
-                padding:'0 6px',
-              }}>{col.count}</span>
-              <button style={{ background:'none', border:'none', color:'var(--ct-text-muted)', cursor:'pointer', padding:'2px' }}>
-                <MoreHorizontal size={14} />
-              </button>
-            </div>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Stats pills */}
+          {/* <div style={{ display: "flex", gap: "8px" }}>
+            {COLUMN_DEFS.slice(0, 4).map(col => {
+              const count = columns.find(c => c.id === col.id)?.cards.length || 0;
+              return count > 0 ? (
+                <div key={col.id} style={{
+                  display: "flex", alignItems: "center", gap: "5px",
+                  padding: "5px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                  background: `${col.accentColor}15`, color: col.accentColor,
+                  border: `1px solid ${col.accentColor}30`,
+                }}>
+                  {col.emoji} {count}
+                </div>
+              ) : null;
+            })}
+          </div> */}
 
-          {/* Cards */}
-          {col.cards.map((card) => <KanbanCard key={card.id} card={card} />)}
-
-          {/* Add card button */}
           <button
-            style={{
-              width:'100%', background:'none', border:'1px dashed var(--ct-border)',
-              borderRadius:'9px', padding:'9px', color:'var(--ct-text-muted)',
-              fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center',
-              justifyContent:'center', gap:'6px', transition:'all 0.18s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor='var(--ct-primary)'; e.currentTarget.style.color='var(--ct-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor='var(--ct-border)';  e.currentTarget.style.color='var(--ct-text-muted)'; }}
+            className="btn-primary"
+            id="pipeline-add-btn"
+            onClick={() => navigate("/applications/new")}
           >
-            <Plus size={13} /> Add card
+            <Plus size={15} /> New Application
+          </button>
+          <button className="btn-secondary" id="pipeline-filter-btn">
+            <SlidersHorizontal size={14} /> Filters
           </button>
         </div>
-      ))}
-    </div>
+      </div>
 
-    {/* FAB */}
-    <button className="fab" aria-label="Add new application" id="pipeline-fab">
-      <Plus size={22} />
-    </button>
-  </div>
-);
+      {/* Instructions hint */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: "8px",
+        padding: "9px 14px", borderRadius: "10px", marginBottom: "18px",
+        background: "var(--ct-primary-light)", border: "1px solid rgba(79,70,229,0.15)",
+        fontSize: "12px", color: "var(--ct-primary)", fontWeight: "600",
+        width: "fit-content",
+      }}>
+        <GripVertical size={13} />
+        Drag &amp; drop application cards to move them between stages
+      </div>
+
+      {/* Kanban board */}
+      <div className="kanban-board">
+        {columns.map((col) => (
+          <KanbanColumn
+            key={col.id}
+            col={col}
+            draggingId={draggingId}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDrop={handleDrop}
+            onAddClick={handleAddClick}
+            updating={updating}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default Pipeline;

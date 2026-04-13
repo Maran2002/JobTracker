@@ -43,7 +43,7 @@ const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...' }) =
         <div className="header-user">
           <div className="header-user-info">
             <div className="header-user-name">{displayName}</div>
-            <div className="header-user-role">Premium Member</div>
+            <div className="header-user-role">{user?.email}</div>
           </div>
           <div
             className="header-avatar"

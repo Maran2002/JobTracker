@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
-import { SlidersHorizontal, Download, Sparkles, BarChart2 } from 'lucide-react';
-
-const applications = [
-  { id:1, logo:'G', company:'Google',  title:'Senior Product Designer', location:'Mountain View, CA', date:'Oct 12, 2023', salary:'$180k – $220k', status:'Interviewing', color:'#4285f4' },
-  { id:2, logo:'A', company:'Airbnb',  title:'UX Engineering Lead',     location:'Remote',            date:'Oct 14, 2023', salary:'$165k – $190k', status:'Applied',      color:'#ff5a5f' },
-  { id:3, logo:'S', company:'Stripe',  title:'Design Technologist',     location:'San Francisco, CA', date:'Oct 16, 2023', salary:'$200k+',        status:'Offer Received', color:'#635bff' },
-  { id:4, logo:'M', company:'Meta',    title:'Staff UI Designer',       location:'Menlo Park, CA',    date:'Oct 05, 2023', salary:'$210k – $240k', status:'Rejected',     color:'#1877f2' },
-  { id:5, logo:'Sp',company:'Spotify', title:'Lead Product Designer',   location:'New York, NY',      date:'Oct 20, 2023', salary:'$175k – $210k', status:'Screening',    color:'#1db954' },
-];
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SlidersHorizontal, Download, Plus } from 'lucide-react';
+import api from '../api/gateway';
 
 const statusClass = {
   'Interviewing':  'badge-interviewing',
@@ -46,7 +40,24 @@ const VelocityChart = () => {
 };
 
 const Applications = () => {
+  const navigate = useNavigate();
+  const [applications, setApplications] = useState([]);
   const [filter, setFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const { data } = await api.get('/applications');
+        setApplications(data);
+      } catch (error) {
+        console.error('Error fetching applications', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApplications();
+  }, []);
 
   const filtered = filter === 'All'
     ? applications
@@ -67,6 +78,9 @@ const Applications = () => {
         <div style={{ display:'flex', gap:'10px' }}>
           <button className="btn-secondary" id="filter-btn"><SlidersHorizontal size={15} />Filters</button>
           <button className="btn-secondary" id="export-btn"><Download size={15} />Export</button>
+          <button className="btn-primary" id="add-application-btn" onClick={() => navigate('/applications/new')}>
+            <Plus size={15} /> New Application
+          </button>
         </div>
       </div>
 
@@ -142,7 +156,7 @@ const Applications = () => {
         </div>
 
         {/* Promo card */}
-        <div className="promo-card" style={{ width:'260px', flexShrink:0 }}>
+        {/* <div className="promo-card" style={{ width:'260px', flexShrink:0 }}>
           <div style={{ position:'relative', zIndex:1 }}>
             <Sparkles size={22} style={{ color:'rgba(255,255,255,0.8)', marginBottom:'10px' }} />
             <div style={{ fontWeight:'800', fontSize:'17px', marginBottom:'6px', lineHeight:'1.3' }}>
@@ -162,7 +176,7 @@ const Applications = () => {
               View Analytics
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, MessageSquare, PartyPopper, XCircle, ChevronRight, CheckCircle2, Circle, MapPin, Video } from 'lucide-react';
+import api from '../api/gateway';
+import { useNavigate } from 'react-router-dom';
 
 /* ── helpers ── */
 const Trend = ({ value, positive }) => (
@@ -135,8 +137,34 @@ const InterviewCard = ({ tag, tagColor, title, company, location, isToday }) => 
 );
 
 /* ── main ── */
-const Dashboard = () => (
-  <div className="page-enter">
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [data, setData] = useState({ applications: [], interviews: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [appsRes, interRes] = await Promise.all([
+          api.get('/applications'),
+          api.get('/interviews')
+        ]);
+        setData({ applications: appsRes.data, interviews: interRes.data });
+      } catch (error) {
+        console.error('Error fetching dashboard data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
+  const totalInterviews = data.interviews.length;
+  const totalOffers = data.applications.filter(a => a.status === 'Offer Received').length;
+  const totalRejections = data.applications.filter(a => a.status === 'Rejected').length;
+
+  return (
+    <div className="page-enter">
     {/* Page header */}
     <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'26px', flexWrap:'wrap', gap:'14px' }}>
       <div>
@@ -145,16 +173,15 @@ const Dashboard = () => (
       </div>
       <div style={{ display:'flex', gap:'10px' }}>
         <button className="btn-secondary" id="download-report-btn"><FileText size={15} />Download Report</button>
-        <button className="btn-primary"   id="sync-data-btn">Sync Data</button>
       </div>
     </div>
 
     {/* Stats row */}
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'16px', marginBottom:'24px' }}>
-      <StatCard icon={FileText}     label="Total Applications" value="15" trend="+12%"  trendPos color="#4f46e5" delay="stagger-1" />
-      <StatCard icon={MessageSquare}label="Interviews"          value="4"  trend="+25%"  trendPos color="#10b981" delay="stagger-2" />
-      <StatCard icon={PartyPopper}  label="Offers"             value="2"  trend="+2"   trendPos color="#f59e0b" delay="stagger-3" />
-      <StatCard icon={XCircle}      label="Rejections"         value="3"  trend="−8%"  trendPos={false} color="#ef4444" delay="stagger-4" />
+      <StatCard icon={FileText}     label="Total Applications" value={data.applications.length} trend="+12%"  trendPos color="#4f46e5" delay="stagger-1" />
+      <StatCard icon={MessageSquare}label="Interviews"          value={totalInterviews}  trend="+25%"  trendPos color="#10b981" delay="stagger-2" />
+      <StatCard icon={PartyPopper}  label="Offers"             value={totalOffers}  trend="+2"   trendPos color="#f59e0b" delay="stagger-3" />
+      <StatCard icon={XCircle}      label="Rejections"         value={totalRejections}  trend="−8%"  trendPos={false} color="#ef4444" delay="stagger-4" />
     </div>
 
     {/* Main 2-col section */}
@@ -174,16 +201,14 @@ const Dashboard = () => (
       {/* Upcoming interviews */}
       <div className="ct-card" style={{ padding:'22px' }}>
         <div className="section-title" style={{ marginBottom:'16px' }}>Upcoming Interviews</div>
-        <InterviewCard
-          tag="TODAY · 2:00 PM" tagColor="#4f46e5"
-          title="Technical Round" company="Airbnb · Video Call"
-          isToday
-        />
-        <InterviewCard
-          tag="TOMORROW · 11:30 AM" tagColor="#f59e0b"
-          title="Portfolio Review" company="Figma · On-site"
-          location="San Francisco, CA"
-        />
+        {data.interviews.slice(0, 2).map((itv, i) => (
+          <InterviewCard
+            key={itv._id || i}
+            tag={itv.date} tagColor={itv.color || "#4f46e5"}
+            title={itv.title} company={itv.company} location={itv.location}
+            isToday={i === 0}
+          />
+        ))}
         <button className="btn-secondary" style={{ width:'100%', justifyContent:'center', marginTop:'4px', fontSize:'13px' }} id="schedule-sync-btn">
           Schedule Sync
         </button>
@@ -196,25 +221,23 @@ const Dashboard = () => (
       <div className="ct-card" style={{ padding:'22px' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <div className="section-title">Recent Applications</div>
-          <button className="btn-ghost" id="view-all-apps-btn">View All</button>
+          <button onClick={() => navigate('/applications')} className="btn-ghost" id="view-all-apps-btn">View All</button>
         </div>
-        <AppRow logo="G" title="Senior Product Designer" company="Google · Applied 2 days ago"  status="Interviewing" color="#4f46e5" />
-        <AppRow logo="S" title="Lead UI Engineer"        company="Stripe · Applied 5 days ago"  status="Applied"      color="#10b981" />
-        <AppRow logo="A" title="UX Research Lead"       company="Airbnb · Applied 8 days ago"  status="Screening"    color="#f59e0b" />
+        {data.applications.slice(0, 3).map((app, i) => (
+          <AppRow key={app._id || i} logo={app.logo || 'C'} title={app.title} company={app.company} status={app.status} color={app.color || '#4f46e5'} />
+        ))}
       </div>
 
       {/* Profile strength */}
-      <div style={{ background:'linear-gradient(135deg,#4f46e5 0%,#6d28d9 100%)', borderRadius:'var(--ct-radius)', padding:'22px', color:'white' }}>
+      {/* <div style={{ background:'linear-gradient(135deg,#4f46e5 0%,#6d28d9 100%)', borderRadius:'var(--ct-radius)', padding:'22px', color:'white' }}>
         <div style={{ fontSize:'13px', fontWeight:'600', opacity:0.8, marginBottom:'8px' }}>Profile Strength</div>
         <div style={{ display:'flex', alignItems:'baseline', gap:'8px', marginBottom:'14px' }}>
           <span style={{ fontSize:'38px', fontWeight:'900', letterSpacing:'-0.03em' }}>82%</span>
           <span style={{ fontSize:'12px', opacity:0.7 }}>Expert Level!</span>
         </div>
-        {/* Bar */}
         <div style={{ height:'7px', background:'rgba(255,255,255,0.2)', borderRadius:'4px', marginBottom:'18px', overflow:'hidden' }}>
           <div style={{ width:'82%', height:'100%', background:'#10b981', borderRadius:'4px', transition:'width 1s ease' }} />
         </div>
-        {/* Items */}
         {[
           { label:'Resume SEO optimized',         done: true  },
           { label:'4 Case studies added',          done: true  },
@@ -240,9 +263,10 @@ const Dashboard = () => (
         >
           Complete Setup
         </button>
-      </div>
+      </div> */}
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default Dashboard;

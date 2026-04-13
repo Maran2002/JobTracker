@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, Briefcase, CheckCircle2 } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
+import api from '../../api/gateway';
 
 const features = [
   'Track all your job applications in one place',
@@ -12,7 +13,7 @@ const features = [
 
 const Login = () => {
   const navigate = useNavigate();
-  const { mockLogin } = useAuthStore();
+  const { login } = useAuthStore();
 
   const [form, setForm]         = useState({ email: '', password: '', remember: false });
   const [showPass, setShowPass] = useState(false);
@@ -32,9 +33,14 @@ const Login = () => {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800)); // Simulate network delay
-    mockLogin(form.email, form.password);
-    navigate('/dashboard');
+    try {
+      const { data } = await api.post('/auth/login', { email: form.email, password: form.password });
+      login(data, data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to login');
+      setLoading(false);
+    }
   };
 
   return (
