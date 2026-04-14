@@ -6,7 +6,11 @@ const router = express.Router();
 
 router.get('/', protect, async (req, res) => {
     try {
-        const interviews = await Interview.find({ user: req.user._id }).sort({ createdAt: 1 });
+        const query = { user: req.user._id };
+        if (req.query.applicationId) {
+            query.applicationId = req.query.applicationId;
+        }
+        const interviews = await Interview.find(query).sort({ createdAt: 1 });
         res.json(interviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -25,6 +29,27 @@ router.post('/', protect, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+router.post('/bulk', protect, async (req, res) => {
+    try {
+        const { interviews } = req.body;
+        if (!interviews || !Array.isArray(interviews)) {
+            return res.status(400).json({ message: 'Invalid data format' });
+        }
+
+        const createdInterviews = await Interview.insertMany(
+            interviews.map(itv => ({
+                ...itv,
+                user: req.user._id
+            }))
+        );
+
+        res.status(201).json(createdInterviews);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 
 router.put('/:id', protect, async (req, res) => {
     try {

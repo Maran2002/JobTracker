@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthGuard from './routes/AuthGuard';
 import MainLayout from './layouts/MainLayout';
-import useThemeStore from './store/useThemeStore';
+import useThemeStore       from './store/useThemeStore';
+import usePreferencesStore from './store/usePreferencesStore';
+import useAuthStore        from './store/useAuthStore';
 import { Toaster } from 'vibe-toast';
 
 // Auth pages
@@ -13,6 +15,7 @@ import Register from './pages/auth/Register';
 import Dashboard       from './pages/Dashboard';
 import Applications    from './pages/Applications';
 import AddApplication  from './pages/AddApplication';
+import ApplicationDetails from './pages/ApplicationDetails';
 import Pipeline        from './pages/Pipeline';
 import Schedule        from './pages/Schedule';
 import Analytics       from './pages/Analytics';
@@ -37,10 +40,20 @@ const ProtectedPage = ({ children, searchPlaceholder }) => (
 );
 
 function App() {
-  const { initTheme } = useThemeStore();
+  const { initTheme }         = useThemeStore();
+  const { initPreferences, fetchPreferences } = usePreferencesStore();
+  const { isAuthenticated }   = useAuthStore();
 
-  // Restore persisted theme on mount
-  useEffect(() => { initTheme(); }, [initTheme]);
+  // Restore persisted theme + accent color on mount
+  useEffect(() => {
+    initTheme();
+    initPreferences();
+  }, [initTheme, initPreferences]);
+
+  // Fetch latest preferences from backend whenever the user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) fetchPreferences();
+  }, [isAuthenticated, fetchPreferences]);
 
   return (
     <Router>
@@ -64,6 +77,16 @@ function App() {
         <Route path="/applications/new" element={
           <ProtectedPage searchPlaceholder="New application...">
             <AddApplication />
+          </ProtectedPage>
+        } />
+        <Route path="/applications/edit/:id" element={
+          <ProtectedPage searchPlaceholder="Edit application...">
+            <AddApplication />
+          </ProtectedPage>
+        } />
+        <Route path="/applications/:id" element={
+          <ProtectedPage searchPlaceholder="View application...">
+            <ApplicationDetails />
           </ProtectedPage>
         } />
         <Route path="/pipeline" element={

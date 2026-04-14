@@ -27,3 +27,4 @@ backend/.env
 *.sln
 *.sw?
 CodebaseReference.md
+CLAUDE.md

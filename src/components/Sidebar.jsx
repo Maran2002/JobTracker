@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   };
 
   const handleAdd = () => {
-    navigate('/applications');
+    navigate('/applications/new');
     onClose?.();
   };
 

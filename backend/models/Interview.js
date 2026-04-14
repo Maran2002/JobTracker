@@ -10,6 +10,11 @@ const interviewSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    applicationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Application',
+        default: null,
+    },
     title: {
         type: String,
         required: true,
@@ -21,6 +26,14 @@ const interviewSchema = new mongoose.Schema({
     date: {
         type: String, // String for simplicity like 'May 24, 2024'
         required: true,
+    },
+    round: {
+        type: Number,
+        default: 1,
+    },
+    roundName: {
+        type: String,
+        default: 'Round 1',
     },
     time: {
         type: String,

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
   Building2, MapPin, DollarSign, Briefcase, Link2,
   FileText, CalendarDays, Star, ChevronLeft, CheckCircle2,
@@ -70,11 +70,32 @@ const SelectPill = ({ options, value, onChange, name }) => (
 const AddApplication = () => {
   const navigate  = useNavigate();
   const location  = useLocation();
+  const { id }    = useParams();
+  const isEditing = Boolean(id);
   const defaultStatus = location.state?.defaultStatus || 'Applied';
 
   const [step, setStep]     = useState(1);
   const [form, setForm]     = useState({ ...initForm, status: defaultStatus });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(isEditing);
+
+  useEffect(() => {
+    if (isEditing) {
+      if (location.state?.application) {
+        setForm({ ...initForm, ...location.state.application, dateApplied: location.state.application.dateApplied ? location.state.application.dateApplied.slice(0, 10) : initForm.dateApplied, deadline: location.state.application.deadline ? location.state.application.deadline.slice(0, 10) : '' });
+        setLoading(false);
+      } else {
+        api.get(`/applications/${id}`).then(res => {
+          setForm({ ...initForm, ...res.data, dateApplied: res.data.dateApplied ? res.data.dateApplied.slice(0, 10) : initForm.dateApplied, deadline: res.data.deadline ? res.data.deadline.slice(0, 10) : '' });
+        }).catch(err => {
+          toast.error('Failed to fetch application');
+          navigate('/applications');
+        }).finally(() => setLoading(false));
+      }
+    }
+  }, [id, isEditing, location.state, navigate]);
+
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--ct-text-muted)' }}>Loading...</div>;
 
   const set = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -90,15 +111,21 @@ const AddApplication = () => {
     }
     setSaving(true);
     try {
-      await api.post('/applications', {
+      const payload = {
         ...form,
         logo: form.logo || form.company.slice(0, 2).toUpperCase(),
         skills: form.skills,
-      });
-      toast.success('Application added successfully! 🎉');
+      };
+      if (isEditing) {
+        await api.put(`/applications/${id}`, payload);
+        toast.success('Application updated successfully! 🎉');
+      } else {
+        await api.post('/applications', payload);
+        toast.success('Application added successfully! 🎉');
+      }
       navigate('/applications');
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to create application.');
+      toast.error(err?.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} application.`);
     } finally {
       setSaving(false);
     }
@@ -107,7 +134,7 @@ const AddApplication = () => {
   /* ───────────── Step panels ───────────── */
   const StepCompany = () => (
     <div className="anim-fade-up">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+      <div className="rg-2" style={{ gap: '18px' }}>
         <div style={{ gridColumn: '1 / -1' }}>
           <FieldGroup label="Company Name" icon={Building2} required>
             <input
@@ -179,7 +206,7 @@ const AddApplication = () => {
         <input className="ct-input" name="title" placeholder="e.g. Senior Frontend Engineer" value={form.title} onChange={set} />
       </FieldGroup>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+      <div className="rg-2" style={{ gap: '18px' }}>
         <FieldGroup label="Location" icon={MapPin} required>
           <input className="ct-input" name="location" placeholder="e.g. Bangalore, IN" value={form.location} onChange={set} />
         </FieldGroup>
@@ -192,7 +219,7 @@ const AddApplication = () => {
         <SelectPill options={JOB_TYPES} value={form.jobType} onChange={set} name="jobType" />
       </FieldGroup>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '18px' }}>
+      <div className="rg-2-1">
         <FieldGroup label="Salary / CTC" icon={DollarSign} hint="Annual package, e.g. $120k or ₹18 LPA">
           <input className="ct-input" name="salary" placeholder="e.g. $95,000 – $130,000" value={form.salary} onChange={set} />
         </FieldGroup>
@@ -213,7 +240,7 @@ const AddApplication = () => {
 
   const StepDetails = () => (
     <div className="anim-fade-up">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+      <div className="rg-2" style={{ gap: '18px' }}>
         <FieldGroup label="Initial Status" icon={Tag}>
           <SelectPill options={STATUSES} value={form.status} onChange={set} name="status" />
         </FieldGroup>
@@ -322,7 +349,7 @@ const AddApplication = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div className="rg-2" style={{ gap: '10px' }}>
           {fields.map(({ l, v }) => (
             <div key={l} style={{
               background: 'var(--ct-bg-secondary)', borderRadius: '10px',
@@ -355,7 +382,6 @@ const AddApplication = () => {
   };
 
   const panels = [StepCompany, StepRole, StepDetails, StepReview];
-  const Panel  = panels[step - 1];
 
   const canNext = () => {
     if (step === 1) return !!form.company.trim();
@@ -376,8 +402,8 @@ const AddApplication = () => {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 className="page-title">Add Job Application</h1>
-        <p className="page-subtitle">Track every opportunity — fill in as much as you know.</p>
+        <h1 className="page-title">{isEditing ? 'Edit Application' : 'Add Job Application'}</h1>
+        <p className="page-subtitle">{isEditing ? 'Update your application details below.' : 'Track every opportunity — fill in as much as you know.'}</p>
       </div>
 
       {/* Step indicator */}
@@ -426,7 +452,7 @@ const AddApplication = () => {
           </div>
         </div>
 
-        <Panel />
+        {panels[step - 1]()}
 
         {/* Navigation */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px', paddingTop: '20px', borderTop: '1px solid var(--ct-border)' }}>
@@ -470,7 +496,7 @@ const AddApplication = () => {
               >
                 {saving
                   ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</>
-                  : <><Send size={15} /> Submit Application</>}
+                  : <><Send size={15} /> {isEditing ? 'Save Changes' : 'Submit Application'}</>}
               </button>
             )}
           </div>

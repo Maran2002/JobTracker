@@ -14,6 +14,20 @@ router.get('/', protect, async (req, res) => {
     }
 });
 
+// Get single application
+router.get('/:id', protect, async (req, res) => {
+    try {
+        const application = await Application.findById(req.params.id);
+        if (application && application.user.toString() === req.user._id.toString()) {
+            res.json(application);
+        } else {
+            res.status(404).json({ message: 'Application not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Create application
 router.post('/', protect, async (req, res) => {
     try {
