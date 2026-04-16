@@ -41,12 +41,12 @@ const BarChart = ({ activeFilter, applications = [] }) => {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:'auto' }}>
       <defs>
         <linearGradient id="barGrad1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#4f46e5" />
+          <stop offset="0%"   stopColor="var(--ct-primary)" />
+          <stop offset="100%" stopColor="var(--ct-primary-dark)" />
         </linearGradient>
         <linearGradient id="barGrad2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#a5b4fc" />
-          <stop offset="100%" stopColor="#818cf8" />
+          <stop offset="0%"   stopColor="var(--ct-primary-light)" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="var(--ct-primary)" stopOpacity="0.4" />
         </linearGradient>
       </defs>
       {data.map((m, i) => {
@@ -67,12 +67,12 @@ const BarChart = ({ activeFilter, applications = [] }) => {
             {/* Referral layer (lighter, bottom) */}
             {(activeFilter === 'all' || activeFilter === 'referral') && (
               <rect x={x} y={padT + chartH - h2} width={barW} height={h2}
-                rx={5} fill="url(#barGrad2)" opacity={0.7} />
+                rx={5} fill="url(#barGrad2)" />
             )}
             {/* In-house layer (darker, on top) */}
             {(activeFilter === 'all' || activeFilter === 'inhouse') && (
               <rect x={x} y={padT + chartH - h1 - (activeFilter === 'all' ? h2 : 0)} width={barW} height={h1}
-                rx={5} fill={isHighest ? 'url(#barGrad1)' : '#818cf8'} />
+                rx={5} fill={isHighest ? 'url(#barGrad1)' : 'var(--ct-primary)'} opacity={isHighest ? 1 : 0.7} />
             )}
             <text x={cx} y={H - 8} textAnchor="middle"
               style={{ fontSize:'11px', fill:'var(--ct-text-muted)', fontFamily:'inherit' }}
@@ -151,17 +151,22 @@ const DonutChart = ({ byStatus, total }) => {
 };
 
 /* ── Conversion funnel ── */
-const FunnelRow = ({ label, count, pct, color }) => (
-  <div style={{ marginBottom:'16px' }}>
-    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'5px' }}>
-      <span style={{ fontSize:'11px', fontWeight:'700', letterSpacing:'0.06em', textTransform:'uppercase', color:'var(--ct-text-muted)' }}>{label}</span>
-      <span style={{ fontSize:'13px', fontWeight:'700', color:'var(--ct-text)' }}>{count} <span style={{ opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>({pct}%)</span></span>
+const FunnelRow = ({ label, count, pct, color }) => {
+  const isPrimary = color === '#4f46e5' || color === 'var(--ct-primary)';
+  const barColor = isPrimary ? 'var(--ct-primary)' : color;
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+        <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ct-text-muted)' }}>{label}</span>
+        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--ct-text)' }}>{count} <span style={{ opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>({pct}%)</span></span>
+      </div>
+      <div style={{ width: '100%', height: '8px', background: 'var(--ct-border)', borderRadius: '4px', overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: '4px', transition: 'width 0.7s ease' }} />
+      </div>
     </div>
-    <div style={{ width: '100%', height: '8px', background: 'var(--ct-border)', borderRadius: '4px', overflow: 'hidden' }}>
-      <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 0.7s ease' }} />
-    </div>
-  </div>
-);
+  );
+};
 
 /* ── Applications by role ── */
 const RoleRow = ({ role, count, max, color }) => (
@@ -175,17 +180,24 @@ const RoleRow = ({ role, count, max, color }) => (
 );
 
 /* ── Bottom stat ── */
-const StatChip = ({ label, value, icon:Icon, color }) => (
-  <div style={{ textAlign:'center', padding:'4px' }}>
-    <div style={{ display:'flex', alignItems:'center', gap:'8px', justifyContent:'center', marginBottom:'4px' }}>
-      <div style={{ fontSize:'22px', fontWeight:'800', color:'var(--ct-primary)', letterSpacing:'-0.03em' }}>{value}</div>
-      <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <Icon size={17} style={{ color }} />
+const StatChip = ({ label, value, icon: Icon, color }) => {
+  const isPrimary = color === '#4f46e5' || color === 'var(--ct-primary)';
+  const iconColor = isPrimary ? 'var(--ct-primary)' : color;
+  const bgColor = isPrimary ? 'var(--ct-primary-light)' : `${color}18`;
+  const valColor = isPrimary ? 'var(--ct-primary)' : 'var(--ct-primary)'; // value is usually primary anyway
+
+  return (
+    <div style={{ textAlign: 'center', padding: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '4px' }}>
+        <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--ct-primary)', letterSpacing: '-0.03em' }}>{value}</div>
+        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={17} style={{ color: iconColor }} />
+        </div>
       </div>
+      <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ct-text-muted)' }}>{label}</div>
     </div>
-    <div style={{ fontSize:'11px', fontWeight:'600', letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--ct-text-muted)' }}>{label}</div>
-  </div>
-);
+  );
+};
 
 /* ── Main ── */
 const Analytics = () => {
@@ -285,7 +297,7 @@ const Analytics = () => {
         {/* Conversion funnel */}
         <div className="ct-card" style={{ padding:'22px', borderLeft:'4px solid #6366f1' }}>
           <div className="section-title" style={{ marginBottom:'18px' }}>Conversion Funnel</div>
-          <FunnelRow label="Applied"     count={applied + screening + interviewing + offers + rejected} pct={total > 0 ? 100 : 0} color="#4f46e5" />
+          <FunnelRow label="Applied"     count={applied + screening + interviewing + offers + rejected} pct={total > 0 ? 100 : 0} color="var(--ct-primary)" />
           <FunnelRow label="Screening"   count={screening + interviewing + offers} pct={total > 0 ? Math.round(((screening + interviewing + offers) / total) * 100) : 0}  color="#10b981" />
           <FunnelRow label="Interviewing" count={interviewing + offers} pct={total > 0 ? Math.round(((interviewing + offers) / total) * 100) : 0}  color="#f59e0b" />
           <FunnelRow label="Offer"       count={offers}  pct={total > 0 ? Math.round((offers / total) * 100) : 0}   color="#ef4444" />
@@ -308,7 +320,7 @@ const Analytics = () => {
       {/* Bottom stats strip */}
       <div className="ct-card rg-4strip">
         {[
-          { label:'Response Rate',  value: `${responseRate}%`,  icon:Mail,     color:'#4f46e5' },
+          { label:'Response Rate',  value: `${responseRate}%`,  icon:Mail,     color:'var(--ct-primary)' },
           { label:'Interview Rate', value: `${interviewRate}%`,  icon:Users,    color:'#10b981' },
           { label:'Offer Rate',     value: `${offerRate}%`,  icon:Settings2,color:'#f59e0b' },
           { label:'Rejection Rate', value: `${rejectionRate}%`,  icon:X,    color:'#f43f5e' },

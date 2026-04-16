@@ -166,22 +166,29 @@ const Trend = ({ text, positive }) => (
 );
 
 /* ── Stat card ── */
-const StatCard = ({ icon: Icon, label, value, trendText, trendPos, color, delay }) => (
-  <div className={`stat-card anim-fade-up ${delay}`} style={{ borderTop:`3px solid ${color}` }}>
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px' }}>
-      <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <Icon size={18} style={{ color }} />
+const StatCard = ({ icon: Icon, label, value, trendText, trendPos, color, delay }) => {
+  const isPrimary = color === '#4f46e5' || color === 'var(--ct-primary)';
+  const borderTop = isPrimary ? 'var(--ct-primary)' : color;
+  const iconColor = isPrimary ? 'var(--ct-primary)' : color;
+  const bgColor = isPrimary ? 'var(--ct-primary-light)' : `${color}18`;
+
+  return (
+    <div className={`stat-card anim-fade-up ${delay}`} style={{ borderTop: `3px solid ${borderTop}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={18} style={{ color: iconColor }} />
+        </div>
+        <Trend text={trendText} positive={trendPos} />
       </div>
-      <Trend text={trendText} positive={trendPos} />
+      <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ct-text-muted)', marginBottom: '6px' }}>
+        {label}
+      </div>
+      <div style={{ fontSize: '30px', fontWeight: '800', color: 'var(--ct-text)', letterSpacing: '-0.03em' }}>
+        {value}
+      </div>
     </div>
-    <div style={{ fontSize:'11px', fontWeight:'600', letterSpacing:'0.06em', textTransform:'uppercase', color:'var(--ct-text-muted)', marginBottom:'6px' }}>
-      {label}
-    </div>
-    <div style={{ fontSize:'30px', fontWeight:'800', color:'var(--ct-text)', letterSpacing:'-0.03em' }}>
-      {value}
-    </div>
-  </div>
-);
+  );
+};
 
 /* ── Dynamic area chart ── */
 const AreaChart = ({ buckets }) => {
@@ -205,8 +212,8 @@ const AreaChart = ({ buckets }) => {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:'auto' }}>
       <defs>
         <linearGradient id="areaGrad2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#4f46e5" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#4f46e5" stopOpacity="0"    />
+          <stop offset="0%"   stopColor="var(--ct-primary)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--ct-primary)" stopOpacity="0"    />
         </linearGradient>
       </defs>
 
@@ -219,19 +226,19 @@ const AreaChart = ({ buckets }) => {
       ))}
 
       <path d={areaPath} fill="url(#areaGrad2)" />
-      <path d={linePath} fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={linePath} fill="none" stroke="var(--ct-primary)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
 
       {pts.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y}
             r={i === peakIdx ? 6 : 4}
-            fill={i === peakIdx ? '#4f46e5' : 'var(--ct-card)'}
-            stroke={i === peakIdx ? '#4f46e5' : 'var(--ct-border)'}
+            fill={i === peakIdx ? 'var(--ct-primary)' : 'var(--ct-card)'}
+            stroke={i === peakIdx ? 'var(--ct-primary)' : 'var(--ct-border)'}
             strokeWidth="2"
           />
           {i === peakIdx && p.count > 0 && (
             <text x={p.x} y={p.y - 9} textAnchor="middle"
-              style={{ fontSize:'9px', fill:'#4f46e5', fontWeight:'700', fontFamily:'inherit' }}>
+              style={{ fontSize:'9px', fill:'var(--ct-primary)', fontWeight:'700', fontFamily:'inherit' }}>
               {p.count}
             </text>
           )}
@@ -240,7 +247,7 @@ const AreaChart = ({ buckets }) => {
 
       {pts.map((p, i) => (
         <text key={i} x={p.x} y={H - 6} textAnchor="middle"
-          style={{ fontSize:'5.5px', fill: i === peakIdx ? '#4f46e5' : 'var(--ct-text-muted)', fontWeight: i === peakIdx ? '700' : '400', fontFamily:'inherit' }}>
+          style={{ fontSize:'5.5px', fill: i === peakIdx ? 'var(--ct-primary)' : 'var(--ct-text-muted)', fontWeight: i === peakIdx ? '700' : '400', fontFamily:'inherit' }}>
           {p.label}
         </text>
       ))}
@@ -314,7 +321,7 @@ const AppRow = ({ app, onClick }) => {
       onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
       onMouseLeave={e => e.currentTarget.style.opacity = '1'}
     >
-      <div className="company-avatar" style={{ background:`${app.color || '#4f46e5'}18`, color: app.color || '#4f46e5', fontSize:'13px', width:'40px', height:'40px', borderRadius:'10px' }}>
+      <div className="company-avatar" style={{ background:`${app.color || 'var(--ct-primary)'}18`, color: app.color || 'var(--ct-primary)', fontSize:'13px', width:'40px', height:'40px', borderRadius:'10px' }}>
         {app.logo || app.company?.slice(0,2).toUpperCase()}
       </div>
       <div style={{ flex:1, minWidth:0 }}>
@@ -333,22 +340,28 @@ const AppRow = ({ app, onClick }) => {
 };
 
 /* ── Rate metric pill ── */
-const RatePill = ({ icon: Icon, label, value, color }) => (
-  <div style={{
-    flex:1, minWidth:'120px',
-    padding:'14px 16px', borderRadius:'12px',
-    background:'var(--ct-card)', border:'1px solid var(--ct-border)',
-    display:'flex', alignItems:'center', gap:'12px',
-  }}>
-    <div style={{ width:'36px', height:'36px', borderRadius:'9px', background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-      <Icon size={16} style={{ color }} />
+const RatePill = ({ icon: Icon, label, value, color }) => {
+  const isPrimary = color === '#4f46e5' || color === 'var(--ct-primary)';
+  const iconColor = isPrimary ? 'var(--ct-primary)' : color;
+  const bgColor = isPrimary ? 'var(--ct-primary-light)' : `${color}18`;
+
+  return (
+    <div style={{
+      flex: 1, minWidth: '120px',
+      padding: '14px 16px', borderRadius: '12px',
+      background: 'var(--ct-card)', border: '1px solid var(--ct-border)',
+      display: 'flex', alignItems: 'center', gap: '12px',
+    }}>
+      <div style={{ width: '36px', height: '36px', borderRadius: '9px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink:0 }}>
+        <Icon size={16} style={{ color: iconColor }} />
+      </div>
+      <div>
+        <div style={{ fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ct-text-muted)', marginBottom: '3px' }}>{label}</div>
+        <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--ct-text)', letterSpacing: '-0.02em' }}>{value}</div>
+      </div>
     </div>
-    <div>
-      <div style={{ fontSize:'10px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--ct-text-muted)', marginBottom:'3px' }}>{label}</div>
-      <div style={{ fontSize:'20px', fontWeight:'800', color:'var(--ct-text)', letterSpacing:'-0.02em' }}>{value}</div>
-    </div>
-  </div>
-);
+  );
+};
 
 /* ── Status progress bar — fully inlined to avoid @heroui/styles class conflicts ── */
 const StatusBar = ({ label, count, total, color }) => {
@@ -489,7 +502,7 @@ const Dashboard = () => {
 
       {/* ── Stat cards ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'16px', marginBottom:'20px' }}>
-        <StatCard icon={FileText}      label="Total Applications" value={totalApps}   trendText={appTrend.text}  trendPos={appTrend.positive}  color="#4f46e5" delay="stagger-1" />
+        <StatCard icon={FileText}      label="Total Applications" value={totalApps}   trendText={appTrend.text}  trendPos={appTrend.positive}  color="var(--ct-primary)" delay="stagger-1" />
         <StatCard icon={MessageSquare} label="Interviews"         value={totalItvs}   trendText={itvTrend.text}  trendPos={itvTrend.positive}  color="#10b981" delay="stagger-2" />
         <StatCard icon={PartyPopper}   label="Offers"             value={totalOffers} trendText={totalOffers > 0 ? `${offerRate}% rate` : 'None yet'} trendPos={totalOffers > 0} color="#f59e0b" delay="stagger-3" />
         <StatCard icon={XCircle}       label="Rejections"         value={totalRej}    trendText={totalRej > 0 ? `${Math.round((totalRej/totalApps)*100)}% rate` : 'None yet'} trendPos={false} color="#ef4444" delay="stagger-4" />
@@ -498,7 +511,7 @@ const Dashboard = () => {
       {/* ── Quick rate metrics ── */}
       {totalApps > 0 && (
         <div style={{ display:'flex', gap:'12px', marginBottom:'20px', flexWrap:'wrap' }}>
-          <RatePill icon={TrendingUp} label="Response Rate"  value={`${responseRate}%`}  color="#4f46e5" />
+          <RatePill icon={TrendingUp} label="Response Rate"  value={`${responseRate}%`}  color="var(--ct-primary)" />
           <RatePill icon={Target}     label="Interview Rate" value={`${interviewRate}%`}  color="#10b981" />
           <RatePill icon={PartyPopper} label="Offer Rate"    value={`${offerRate}%`}      color="#f59e0b" />
           <RatePill icon={Calendar}   label="In Progress"    value={inProgress}            color="#06b6d4" />
@@ -617,7 +630,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              <StatusBar label="Applied"        count={apps.filter(a => a.status === 'Applied').length}        total={totalApps} color="#4f46e5" />
+              <StatusBar label="Applied"        count={apps.filter(a => a.status === 'Applied').length}        total={totalApps} color="var(--ct-primary)" />
               <StatusBar label="Screening"      count={apps.filter(a => a.status === 'Screening').length}      total={totalApps} color="#06b6d4" />
               <StatusBar label="Interviewing"   count={apps.filter(a => a.status === 'Interviewing').length}   total={totalApps} color="#10b981" />
               <StatusBar label="Offer Received" count={totalOffers}                                             total={totalApps} color="#f59e0b" />

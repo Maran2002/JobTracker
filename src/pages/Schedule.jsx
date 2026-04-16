@@ -87,10 +87,10 @@ const InterviewRow = ({ itv, onDelete }) => {
       border: `1px solid ${isToday ? 'rgba(79,70,229,0.2)' : 'var(--ct-border)'}`,
     }}>
       {/* left color bar */}
-      <div className="timeline-left-bar" style={{ background: itv.color || '#4f46e5' }} />
+      <div className="timeline-left-bar" style={{ background: itv.color || 'var(--ct-primary)' }} />
 
       {/* avatar */}
-      <div className="company-avatar" style={{ background: `${itv.logoColor || itv.color || '#4f46e5'}18`, color: itv.logoColor || itv.color || '#4f46e5', fontSize: '13px' }}>
+      <div className="company-avatar" style={{ background: `${itv.logoColor || itv.color || 'var(--ct-primary)'}18`, color: itv.logoColor || itv.color || 'var(--ct-primary)', fontSize: '13px' }}>
         {itv.logo || itv.company?.slice(0, 2).toUpperCase()}
       </div>
 
@@ -291,8 +291,8 @@ const CalendarView = ({ interviews }) => {
                   {byDay[day]?.slice(0, 2).map((itv, j) => (
                     <div key={j} style={{
                       fontSize: '9px', fontWeight: '700', padding: '2px 5px', borderRadius: '5px', marginBottom: '2px',
-                      background: todayCell ? 'rgba(255,255,255,0.2)' : `${itv.color || '#4f46e5'}22`,
-                      color: todayCell ? '#fff' : (itv.color || '#4f46e5'),
+                      background: todayCell ? 'rgba(255,255,255,0.2)' : `${itv.color || 'var(--ct-primary)'}22`,
+                      color: todayCell ? '#fff' : (itv.color || 'var(--ct-primary)'),
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {itv.title}
@@ -335,7 +335,7 @@ const CalendarView = ({ interviews }) => {
                       background: 'var(--ct-bg-secondary)', border: '1px solid var(--ct-border)',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: `${itv.color || '#4f46e5'}18`, color: itv.color || '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '800' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: `${itv.color || 'var(--ct-primary)'}18`, color: itv.color || 'var(--ct-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '800' }}>
                           {itv.logo || itv.company?.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
@@ -454,7 +454,7 @@ const Schedule = () => {
 
         {/* Featured interview banner */}
         <div style={{
-          background: 'linear-gradient(135deg,#4f46e5,#6d28d9)',
+          background: 'linear-gradient(135deg, var(--ct-primary), var(--ct-primary-dark))',
           borderRadius: 'var(--ct-radius)', padding: '22px 24px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           color: 'white', position: 'relative', overflow: 'hidden', gap: '16px',

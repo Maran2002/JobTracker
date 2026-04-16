@@ -207,7 +207,7 @@ input, textarea, select { font-family: inherit; }
 
 .sidebar-add-btn {
   width: 100%;
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: linear-gradient(135deg, var(--ct-primary), var(--ct-primary-dark));
   color: white;
   border: none;
   border-radius: 11px;
@@ -221,12 +221,12 @@ input, textarea, select { font-family: inherit; }
   gap: 8px;
   margin-bottom: 14px;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(79,70,229,0.38);
+  box-shadow: 0 4px 14px var(--ct-primary-shadow);
   letter-spacing: 0.01em;
 }
 .sidebar-add-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(79,70,229,0.48);
+  box-shadow: 0 6px 22px var(--ct-primary-shadow-lg);
 }
 
 .sidebar-link {
@@ -470,7 +470,7 @@ input, textarea, select { font-family: inherit; }
    BUTTONS
    ============================================================ */
 .btn-primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: linear-gradient(135deg, var(--ct-primary), var(--ct-primary-dark));
   color: white;
   border: none;
   border-radius: var(--ct-radius-sm);
@@ -482,12 +482,12 @@ input, textarea, select { font-family: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  box-shadow: 0 4px 12px rgba(79,70,229,0.28);
+  box-shadow: 0 4px 12px var(--ct-primary-shadow);
   white-space: nowrap;
 }
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(79,70,229,0.40);
+  box-shadow: 0 6px 20px var(--ct-primary-shadow-lg);
 }
 
 .btn-secondary {
@@ -1434,4 +1434,103 @@ input, textarea, select { font-family: inherit; }
 
 @media (max-width: 640px) {
   .filter-drawer-panel { width: 100%; max-width: 100%; }
+}
+
+/* ============================================================
+   SEARCH DROPDOWN
+   ============================================================ */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--ct-card);
+  border: 1px solid var(--ct-border);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  z-index: 300;
+  overflow: hidden;
+  animation: fadeSlideDown 0.16s ease both;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.search-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ct-text-muted);
+  padding: 10px 14px 5px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  border-radius: 0;
+}
+.search-result-item:hover { background: var(--ct-bg-secondary); }
+
+.search-result-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   MODAL ANIMATION
+   ============================================================ */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* ============================================================
+   BTN SECONDARY
+   ============================================================ */
+.btn-secondary {
+  background: var(--ct-card);
+  color: var(--ct-text);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-sm);
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.btn-secondary:hover {
+  background: var(--ct-bg-secondary);
+  border-color: var(--ct-primary);
+  color: var(--ct-primary);
+}
+
+/* ============================================================
+   NOTIFICATION CARDS (Notifications page)
+   ============================================================ */
+.notif-card-unread {
+  border-left: 3px solid var(--ct-primary);
 }

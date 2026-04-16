@@ -12,14 +12,15 @@ import Login    from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
 // Main pages
-import Dashboard       from './pages/Dashboard';
-import Applications    from './pages/Applications';
-import AddApplication  from './pages/AddApplication';
+import Dashboard          from './pages/Dashboard';
+import Applications       from './pages/Applications';
+import AddApplication     from './pages/AddApplication';
 import ApplicationDetails from './pages/ApplicationDetails';
-import Pipeline        from './pages/Pipeline';
-import Schedule        from './pages/Schedule';
-import Analytics       from './pages/Analytics';
-import Settings        from './pages/Settings';
+import Pipeline           from './pages/Pipeline';
+import Schedule           from './pages/Schedule';
+import Analytics          from './pages/Analytics';
+import Settings           from './pages/Settings';
+import Notifications      from './pages/Notifications';
 
 // 404
 const NotFound = () => (
@@ -30,7 +31,6 @@ const NotFound = () => (
   </div>
 );
 
-// Wrap each protected page in MainLayout
 const ProtectedPage = ({ children, searchPlaceholder }) => (
   <AuthGuard>
     <MainLayout searchPlaceholder={searchPlaceholder}>
@@ -50,10 +50,19 @@ function App() {
     initPreferences();
   }, [initTheme, initPreferences]);
 
-  // Fetch latest preferences from backend whenever the user is authenticated
+  // Fetch latest preferences from backend when authenticated
   useEffect(() => {
     if (isAuthenticated) fetchPreferences();
   }, [isAuthenticated, fetchPreferences]);
+
+  // Register service worker for Web Push
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('[SW] Registration failed:', err);
+      });
+    }
+  }, []);
 
   return (
     <Router>
@@ -107,6 +116,11 @@ function App() {
         <Route path="/settings" element={
           <ProtectedPage searchPlaceholder="Search settings...">
             <Settings />
+          </ProtectedPage>
+        } />
+        <Route path="/notifications" element={
+          <ProtectedPage searchPlaceholder="Search notifications...">
+            <Notifications />
           </ProtectedPage>
         } />
 

@@ -37,13 +37,22 @@ function darkenHex(hex, amount = 18) {
 export function applyAccentColor(hex) {
   const { r, g, b } = hexToRgb(hex);
   const root = document.documentElement;
+  
+  // Calculate variations
+  const dark = darkenHex(hex, 20);
+  
   root.style.setProperty('--ct-primary',             hex);
-  root.style.setProperty('--ct-primary-hover',       darkenHex(hex));
+  root.style.setProperty('--ct-primary-hover',       dark);
+  root.style.setProperty('--ct-primary-dark',        dark);
   root.style.setProperty('--ct-primary-light',       `rgba(${r},${g},${b},0.08)`);
   root.style.setProperty('--ct-primary-rgb',         `${r},${g},${b}`);
   root.style.setProperty('--ct-sidebar-active-bg',   `rgba(${r},${g},${b},0.18)`);
   root.style.setProperty('--ct-sidebar-active-border', hex);
   root.style.setProperty('--ct-sidebar-active-text', '#ffffff');
+  
+  // Added for gradients and box shadows
+  root.style.setProperty('--ct-primary-shadow',      `rgba(${r},${g},${b},0.28)`);
+  root.style.setProperty('--ct-primary-shadow-lg',   `rgba(${r},${g},${b},0.42)`);
 }
 
 /* ─── Store ─────────────────────────────────────────────────── */

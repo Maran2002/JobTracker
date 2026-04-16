@@ -1,39 +1,35 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import api from '../api/gateway';
 
 const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
       permissions: [],
 
-      // Real API login (placeholder)
-      login: (userData, token) =>
+      /** Full login — stores returned data, then fetches full profile (incl. bio) */
+      login: async (userData, token) => {
         set({
           user: userData,
           token,
           isAuthenticated: true,
           permissions: userData.permissions || [],
-        }),
-
-      // Demo login — no API call required
-      mockLogin: (email, _password) => {
-        const userData = {
-          name: 'Siddharth',
-          email,
-          role: 'Premium Member',
-          avatar: null,
-          permissions: ['all'],
-        };
-        set({
-          user: userData,
-          token: 'demo-token-abc123',
-          isAuthenticated: true,
-          permissions: userData.permissions,
         });
+        // Hydrate full profile (bio, isTwoFactorEnabled, etc.) from /api/user/me
+        try {
+          const { data } = await api.get('/user/me');
+          set((state) => ({ user: { ...state.user, ...data } }));
+        } catch {
+          // Non-critical — proceed with login data
+        }
       },
+
+      /** Update a subset of user fields (used by Settings, etc.) */
+      updateUser: (userData) =>
+        set((state) => ({ user: { ...state.user, ...userData } })),
 
       logout: () =>
         set({
@@ -42,9 +38,6 @@ const useAuthStore = create(
           isAuthenticated: false,
           permissions: [],
         }),
-
-      updateUser: (userData) =>
-        set((state) => ({ user: { ...state.user, ...userData } })),
     }),
     {
       name: 'ct-auth-storage',

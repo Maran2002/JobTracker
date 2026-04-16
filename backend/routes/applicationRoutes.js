@@ -4,10 +4,15 @@ import Application from '../models/Application.js';
 
 const router = express.Router();
 
-// Get all applications for a user
+// Get all applications for a user (with optional ?search= query)
 router.get('/', protect, async (req, res) => {
     try {
-        const applications = await Application.find({ user: req.user._id }).sort({ dateApplied: -1 });
+        const query = { user: req.user._id };
+        if (req.query.search) {
+            const re = new RegExp(req.query.search, 'i');
+            query.$or = [{ title: re }, { company: re }, { location: re }, { status: re }];
+        }
+        const applications = await Application.find(query).sort({ dateApplied: -1 });
         res.json(applications);
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -346,7 +346,7 @@ const Applications = () => {
               {/* Avatar */}
               <div
                 className="company-avatar"
-                style={{ background:`${app.color || '#4f46e5'}18`, color: app.color || '#4f46e5', fontSize:'14px' }}
+                style={{ background:`${app.color || 'var(--ct-primary)'}18`, color: app.color || 'var(--ct-primary)', fontSize:'14px' }}
               >
                 {app.logo || app.company?.slice(0, 2).toUpperCase()}
               </div>

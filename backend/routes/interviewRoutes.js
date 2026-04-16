@@ -10,6 +10,10 @@ router.get('/', protect, async (req, res) => {
         if (req.query.applicationId) {
             query.applicationId = req.query.applicationId;
         }
+        if (req.query.search) {
+            const re = new RegExp(req.query.search, 'i');
+            query.$or = [{ title: re }, { company: re }, { location: re }, { type: re }];
+        }
         const interviews = await Interview.find(query).sort({ createdAt: 1 });
         res.json(interviews);
     } catch (error) {
