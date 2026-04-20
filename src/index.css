@@ -941,6 +941,28 @@ input, textarea, select { font-family: inherit; }
   to   { transform: rotate(360deg); }
 }
 
+/* Spin utility applied to elements with className="spin" */
+.spin { animation: spin 1s linear infinite; }
+
+/* ── Application list metadata columns (Date Applied, Salary) ──
+   Hidden on small screens to keep rows readable              */
+.app-meta-col {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Status filter chip row — horizontal scroll on tiny screens */
+.status-chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+  flex-wrap: nowrap;
+}
+.status-chip-row::-webkit-scrollbar { display: none; }
+
 /* ============================================================
    KANBAN DRAG & DROP ENHANCEMENTS
    ============================================================ */
@@ -1187,7 +1209,8 @@ input, textarea, select { font-family: inherit; }
   .page-title    { font-size: 19px; }
 
   /* 2-col grids collapse to 1 */
-  .rg-2 { grid-template-columns: 1fr; }
+  .rg-2   { grid-template-columns: 1fr; }
+  .rg-2-1 { grid-template-columns: 1fr; }
 
   /* stat card padding */
   .stat-card { padding: 16px 18px; }
@@ -1202,6 +1225,12 @@ input, textarea, select { font-family: inherit; }
 
   /* settings rows */
   .settings-row { flex-wrap: wrap; gap: 10px; }
+
+  /* hide application metadata columns (date, salary) */
+  .app-meta-col { display: none; }
+
+  /* add application form card padding */
+  .add-app-card { padding: 20px !important; }
 }
 
 /* ── 360 px — small mobile ── */
@@ -1236,6 +1265,10 @@ input, textarea, select { font-family: inherit; }
 
   /* btn sizes */
   .btn-primary, .btn-secondary { padding: 8px 14px; font-size: 12px; }
+
+  /* rg-2-1 already collapses at 480 */
+  /* step indicator label hidden */
+  .step-label-text { display: none; }
 }
 
 /* ============================================================
@@ -1533,4 +1566,153 @@ input, textarea, select { font-family: inherit; }
    ============================================================ */
 .notif-card-unread {
   border-left: 3px solid var(--ct-primary);
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN (GLOBAL)
+   ============================================================ */
+@media (max-width: 900px) {
+  .hamburger-btn {
+    display: flex; /* Show hamburger */
+  }
+
+  /* Sidebar slides out of view on small screens */
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Overlay becomes visible if sidebar opens */
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Main wrapper takes full width */
+  .main-wrapper {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Smaller paddings for header and main */
+  .ct-header {
+    padding: 0 16px;
+  }
+  .main-content {
+    padding: 16px;
+  }
+  
+  /* Make header right segment tighter */
+  .header-user-info {
+    display: none; /* Hide name/email on mobile to save space */
+  }
+
+  /* KanBan board adjustments */
+  .kanban-board {
+    padding-bottom: 5px;
+  }
+  
+  /* Auth Pages stack */
+  .auth-shell {
+    flex-direction: column;
+  }
+  .auth-left {
+    width: 100%;
+    padding: 40px 20px;
+    height: 250px;
+  }
+  .auth-right {
+    padding: 20px;
+  }
+  
+  .page-title {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 300px) {
+  /* ── Ultra-small screens (300px and below) ── */
+
+  /* Shell & Layout */
+  .ct-header      { padding: 0 8px; height: 50px; gap: 6px; }
+  .main-content   { padding: 8px; }
+  .ct-footer      { padding: 6px 8px; flex-direction: column; gap: 3px; font-size: 10px; text-align: center; }
+
+  /* Hide non-essential header elements */
+  .header-user         { display: none; }
+  #header-notifications { display: none; }
+  #header-help         { display: none; }
+
+  /* Search bar: take remaining space, no max-width constraint */
+  .search-wrap  { max-width: none; flex: 1; min-width: 0; }
+  .header-right { gap: 4px; }
+
+  /* Typography */
+  .page-title    { font-size: 15px; }
+  .page-subtitle { font-size: 11px; }
+  .section-title { font-size: 14px; }
+
+  /* All grid layouts → single column */
+  .rg-2, .rg-2-1, .rg-3stats, .rg-sidebar, .rg-sidebar-sm, .rg-1auto {
+    grid-template-columns: 1fr;
+  }
+  .rg-4strip      { grid-template-columns: 1fr; }
+  .rg-4strip-item { border-right: none; border-bottom: 1px solid var(--ct-border); }
+  .rg-4strip-item:last-child { border-bottom: none; }
+
+  /* Cards */
+  .stat-card      { padding: 12px 14px; }
+  .ct-card        { border-radius: 10px; }
+  .settings-section { padding: 12px; }
+  .settings-section-title { font-size: 12px; }
+
+  /* Settings rows — stack vertically */
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  /* Buttons — compact */
+  .btn-primary, .btn-secondary {
+    padding: 7px 12px;
+    font-size: 12px;
+    gap: 5px;
+  }
+
+  /* App list meta columns — hidden */
+  .app-meta-col { display: none; }
+
+  /* Company avatar — smaller */
+  .company-avatar {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    font-size: 10px;
+  }
+
+  /* Timeline items */
+  .timeline-item  { gap: 6px; padding: 8px 10px; }
+
+  /* Kanban — full width scrollable */
+  .kanban-col { min-width: 260px; max-width: 260px; }
+
+  /* Auth pages */
+  .auth-right     { padding: 8px; }
+  .auth-form-card { padding: 16px 10px; border-radius: 12px; }
+
+  /* Form elements */
+  .ct-input  { padding: 9px 11px; font-size: 13px; }
+  .ct-label  { font-size: 12px; }
+
+  /* Filter drawer */
+  .filter-drawer-panel  { width: 100%; max-width: 100%; }
+  .filter-drawer-header { padding: 14px 16px 12px; }
+  .filter-drawer-body   { padding: 14px; }
+  .filter-drawer-footer { padding: 12px 14px; }
+
+  /* Step indicator labels — hide on tiny screens */
+  .step-label-text { display: none !important; }
 }

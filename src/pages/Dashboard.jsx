@@ -501,7 +501,7 @@ const Dashboard = () => {
       </div>
 
       {/* ── Stat cards ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'16px', marginBottom:'20px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:'16px', marginBottom:'20px' }}>
         <StatCard icon={FileText}      label="Total Applications" value={totalApps}   trendText={appTrend.text}  trendPos={appTrend.positive}  color="var(--ct-primary)" delay="stagger-1" />
         <StatCard icon={MessageSquare} label="Interviews"         value={totalItvs}   trendText={itvTrend.text}  trendPos={itvTrend.positive}  color="#10b981" delay="stagger-2" />
         <StatCard icon={PartyPopper}   label="Offers"             value={totalOffers} trendText={totalOffers > 0 ? `${offerRate}% rate` : 'None yet'} trendPos={totalOffers > 0} color="#f59e0b" delay="stagger-3" />

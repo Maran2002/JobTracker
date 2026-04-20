@@ -9,10 +9,17 @@ const router = express.Router();
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
 /* ── Register ── */
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res, next) => {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: 'Name, email and password are required.' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
+
     try {
-        // Allow re-registration if previous account was soft-deleted
         const existingUser = await User.findOne({ email });
         if (existingUser && !existingUser.isDeleted) {
             return res.status(400).json({ message: 'User already exists' });
@@ -21,36 +28,39 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        let user;
         if (existingUser && existingUser.isDeleted) {
-            // Re-activate by creating a fresh document (clear old one first)
             await User.deleteOne({ _id: existingUser._id });
         }
 
-        user = await User.create({ name, email, password: hashedPassword });
+        const user = await User.create({ name, email, password: hashedPassword });
 
         if (user) {
             res.status(201).json({
-                _id:         user._id,
-                name:        user.name,
-                email:       user.email,
-                role:        user.role,
-                permissions: user.permissions,
-                bio:         user.bio,
+                _id:                user._id,
+                name:               user.name,
+                email:              user.email,
+                role:               user.role,
+                permissions:        user.permissions,
+                bio:                user.bio,
                 isTwoFactorEnabled: user.isTwoFactorEnabled,
-                token:       generateToken(user._id),
+                token:              generateToken(user._id),
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 /* ── Login (Step 1) ── */
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
     try {
         const user = await User.findOne({ email });
 
@@ -58,7 +68,7 @@ router.post('/login', async (req, res) => {
 
         if (user.isDeleted) {
             return res.status(401).json({
-                message: 'This account has been deactivated. Please register a new account.'
+                message: 'This account has been deactivated. Please register a new account.',
             });
         }
 
@@ -86,23 +96,28 @@ router.post('/login', async (req, res) => {
         }
 
         res.json({
-            _id:         user._id,
-            name:        user.name,
-            email:       user.email,
-            role:        user.role,
-            bio:         user.bio,
-            permissions: user.permissions,
+            _id:                user._id,
+            name:               user.name,
+            email:              user.email,
+            role:               user.role,
+            bio:                user.bio,
+            permissions:        user.permissions,
             isTwoFactorEnabled: user.isTwoFactorEnabled,
-            token:       generateToken(user._id),
+            token:              generateToken(user._id),
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 /* ── Login (Step 2 — 2FA verification) ── */
-router.post('/verify-2fa-login', async (req, res) => {
+router.post('/verify-2fa-login', async (req, res, next) => {
     const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+        return res.status(400).json({ message: 'userId and OTP are required.' });
+    }
+
     try {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -122,17 +137,17 @@ router.post('/verify-2fa-login', async (req, res) => {
         await user.save();
 
         res.json({
-            _id:         user._id,
-            name:        user.name,
-            email:       user.email,
-            role:        user.role,
-            bio:         user.bio,
-            permissions: user.permissions,
+            _id:                user._id,
+            name:               user.name,
+            email:              user.email,
+            role:               user.role,
+            bio:                user.bio,
+            permissions:        user.permissions,
             isTwoFactorEnabled: user.isTwoFactorEnabled,
-            token:       generateToken(user._id),
+            token:              generateToken(user._id),
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 

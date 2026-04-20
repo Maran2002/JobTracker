@@ -296,11 +296,12 @@ const Analytics = () => {
       <div className="rg-2" style={{ gap:'20px', marginBottom:'20px' }}>
         {/* Conversion funnel */}
         <div className="ct-card" style={{ padding:'22px', borderLeft:'4px solid #6366f1' }}>
-          <div className="section-title" style={{ marginBottom:'18px' }}>Conversion Funnel</div>
-          <FunnelRow label="Applied"     count={applied + screening + interviewing + offers + rejected} pct={total > 0 ? 100 : 0} color="var(--ct-primary)" />
-          <FunnelRow label="Screening"   count={screening + interviewing + offers} pct={total > 0 ? Math.round(((screening + interviewing + offers) / total) * 100) : 0}  color="#10b981" />
-          <FunnelRow label="Interviewing" count={interviewing + offers} pct={total > 0 ? Math.round(((interviewing + offers) / total) * 100) : 0}  color="#f59e0b" />
-          <FunnelRow label="Offer"       count={offers}  pct={total > 0 ? Math.round((offers / total) * 100) : 0}   color="#ef4444" />
+          <div className="section-title" style={{ marginBottom:'18px' }}>Status Breakdown</div>
+          <FunnelRow label="Applied"      count={applied}      pct={total > 0 ? Math.round((applied / total) * 100) : 0}      color="var(--ct-primary)" />
+          <FunnelRow label="Screening"    count={screening}    pct={total > 0 ? Math.round((screening / total) * 100) : 0}    color="#10b981" />
+          <FunnelRow label="Interviewing" count={interviewing} pct={total > 0 ? Math.round((interviewing / total) * 100) : 0} color="#f59e0b" />
+          <FunnelRow label="Offer"        count={offers}       pct={total > 0 ? Math.round((offers / total) * 100) : 0}       color="#8b5cf6" />
+          <FunnelRow label="Rejected"     count={rejected}     pct={total > 0 ? Math.round((rejected / total) * 100) : 0}     color="#ef4444" />
         </div>
 
         {/* Applications by role */}

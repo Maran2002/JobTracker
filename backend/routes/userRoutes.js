@@ -7,17 +7,18 @@ import { sendOtpEmail } from '../utils/mailer.js';
 const router = express.Router();
 
 /* ── GET /api/user/me ── */
-router.get('/me', protect, async (req, res) => {
+router.get('/me', protect, async (req, res, next) => {
     try {
-        const user = await User.findById(req.user._id).select('-password -otpCode');
+        const user = await User.findById(req.user._id).select('-password -otpCode').lean();
+        if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 /* ── PUT /api/user/profile ── */
-router.put('/profile', protect, async (req, res) => {
+router.put('/profile', protect, async (req, res, next) => {
     const { name, email, bio } = req.body;
     try {
         const updates = {};
@@ -34,22 +35,23 @@ router.put('/profile', protect, async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 /* ── GET /api/user/preferences ── */
-router.get('/preferences', protect, async (req, res) => {
+router.get('/preferences', protect, async (req, res, next) => {
     try {
-        const user = await User.findById(req.user._id).select('preferences');
-        res.json(user?.preferences || {});
+        const user = await User.findById(req.user._id).select('preferences').lean();
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user.preferences || {});
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 /* ── PUT /api/user/preferences ── */
-router.put('/preferences', protect, async (req, res) => {
+router.put('/preferences', protect, async (req, res, next) => {
     try {
         const { preferences } = req.body;
         if (!preferences || typeof preferences !== 'object') {
@@ -60,9 +62,10 @@ router.put('/preferences', protect, async (req, res) => {
             { $set: { preferences } },
             { new: true }
         ).select('preferences');
-        res.json(user?.preferences || {});
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user.preferences || {});
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -70,7 +73,7 @@ router.put('/preferences', protect, async (req, res) => {
    OTP — Send (generic, purpose-gated)
    POST /api/user/send-otp  { purpose }
    ═══════════════════════════════════════════ */
-router.post('/send-otp', protect, async (req, res) => {
+router.post('/send-otp', protect, async (req, res, next) => {
     const { purpose } = req.body;
     const VALID_PURPOSES = ['change-password', 'toggle-2fa', 'delete-account'];
     if (!VALID_PURPOSES.includes(purpose)) {
@@ -98,7 +101,7 @@ router.post('/send-otp', protect, async (req, res) => {
         await sendOtpEmail(user.email, otp, purposeLabels[purpose]);
         res.json({ message: `OTP sent to ${user.email}` });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -106,8 +109,11 @@ router.post('/send-otp', protect, async (req, res) => {
    Change Password
    POST /api/user/change-password  { otp, newPassword }
    ═══════════════════════════════════════════ */
-router.post('/change-password', protect, async (req, res) => {
+router.post('/change-password', protect, async (req, res, next) => {
     const { otp, newPassword } = req.body;
+    if (!otp || !newPassword) {
+        return res.status(400).json({ message: 'OTP and new password are required' });
+    }
     try {
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -120,7 +126,7 @@ router.post('/change-password', protect, async (req, res) => {
         const valid = await bcrypt.compare(otp, user.otpCode);
         if (!valid) return res.status(400).json({ message: 'Invalid OTP' });
 
-        if (!newPassword || newPassword.length < 6) {
+        if (newPassword.length < 6) {
             return res.status(400).json({ message: 'New password must be at least 6 characters.' });
         }
 
@@ -133,7 +139,7 @@ router.post('/change-password', protect, async (req, res) => {
 
         res.json({ message: 'Password changed successfully.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -141,8 +147,9 @@ router.post('/change-password', protect, async (req, res) => {
    Toggle 2FA
    POST /api/user/toggle-2fa  { otp }
    ═══════════════════════════════════════════ */
-router.post('/toggle-2fa', protect, async (req, res) => {
+router.post('/toggle-2fa', protect, async (req, res, next) => {
     const { otp } = req.body;
+    if (!otp) return res.status(400).json({ message: 'OTP is required' });
     try {
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -166,7 +173,7 @@ router.post('/toggle-2fa', protect, async (req, res) => {
             message: `Two-Factor Authentication ${user.isTwoFactorEnabled ? 'enabled' : 'disabled'}.`,
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -174,8 +181,9 @@ router.post('/toggle-2fa', protect, async (req, res) => {
    Delete Account (soft delete)
    POST /api/user/delete-account  { otp }
    ═══════════════════════════════════════════ */
-router.post('/delete-account', protect, async (req, res) => {
+router.post('/delete-account', protect, async (req, res, next) => {
     const { otp } = req.body;
+    if (!otp) return res.status(400).json({ message: 'OTP is required' });
     try {
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -197,7 +205,7 @@ router.post('/delete-account', protect, async (req, res) => {
 
         res.json({ message: 'Account deactivated. You have been signed out.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -205,13 +213,14 @@ router.post('/delete-account', protect, async (req, res) => {
    Web Push — Subscribe
    POST /api/user/push-subscribe  { subscription }
    ═══════════════════════════════════════════ */
-router.post('/push-subscribe', protect, async (req, res) => {
+router.post('/push-subscribe', protect, async (req, res, next) => {
     const { subscription } = req.body;
     if (!subscription || !subscription.endpoint) {
         return res.status(400).json({ message: 'subscription object required' });
     }
     try {
         const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
         // Avoid duplicate subscriptions from same endpoint
         const already = user.pushSubscriptions.some(s => s.endpoint === subscription.endpoint);
         if (!already) {
@@ -220,7 +229,7 @@ router.post('/push-subscribe', protect, async (req, res) => {
         }
         res.json({ message: 'Push subscription saved.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -228,15 +237,17 @@ router.post('/push-subscribe', protect, async (req, res) => {
    Web Push — Unsubscribe
    DELETE /api/user/push-subscribe  { endpoint }
    ═══════════════════════════════════════════ */
-router.delete('/push-subscribe', protect, async (req, res) => {
+router.delete('/push-subscribe', protect, async (req, res, next) => {
     const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ message: 'endpoint required' });
     try {
-        await User.findByIdAndUpdate(req.user._id, {
+        const result = await User.findByIdAndUpdate(req.user._id, {
             $pull: { pushSubscriptions: { endpoint } },
         });
+        if (!result) return res.status(404).json({ message: 'User not found' });
         res.json({ message: 'Push subscription removed.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 

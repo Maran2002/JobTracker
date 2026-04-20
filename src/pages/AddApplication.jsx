@@ -407,7 +407,7 @@ const AddApplication = () => {
       </div>
 
       {/* Step indicator */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '32px', position: 'relative' }}>
+      <div style={{ display: 'flex', gap: '0', marginBottom: '32px', position: 'relative', overflowX: 'auto', paddingBottom: '8px' }}>
         {/* connecting line */}
         <div style={{ position: 'absolute', top: '17px', left: '17px', right: '17px', height: '2px', background: 'var(--ct-border)', zIndex: 0 }} />
         <div style={{
@@ -432,14 +432,14 @@ const AddApplication = () => {
               }}>
                 {done ? <CheckCircle2 size={16} fill="white" strokeWidth={0} /> : <Icon size={15} />}
               </div>
-              <span style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: active ? 'var(--ct-primary)' : done ? 'var(--ct-text-secondary)' : 'var(--ct-text-muted)' }}>{s.label}</span>
+              <span className="step-label-text" style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: active ? 'var(--ct-primary)' : done ? 'var(--ct-text-secondary)' : 'var(--ct-text-muted)' }}>{s.label}</span>
             </div>
           );
         })}
       </div>
 
       {/* Form card */}
-      <div className="ct-card" style={{ padding: '32px' }}>
+      <div className="ct-card add-app-card" style={{ padding: '32px' }}>
         <div style={{ marginBottom: '28px' }}>
           <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--ct-text)', marginBottom: '4px' }}>
             Step {step}: {STEPS[step - 1].label}

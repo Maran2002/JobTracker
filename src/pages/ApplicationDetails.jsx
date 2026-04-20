@@ -47,33 +47,33 @@ const ApplicationDetails = () => {
                 <span style={{ color: 'var(--ct-primary)', fontWeight: '600' }}>{application.company}</span>
             </div>
 
-            <div className="ct-card" style={{ padding: '32px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+            <div className="ct-card add-app-card" style={{ padding: '32px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
                     <div style={{
-                        width: '64px', height: '64px', borderRadius: '16px', flexShrink: 0,
+                        width: '56px', height: '56px', borderRadius: '14px', flexShrink: 0,
                         background: `${application.color || '#4f46e5'}22`, color: application.color || '#4f46e5',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: '800', fontSize: '24px'
+                        fontWeight: '800', fontSize: '20px'
                     }}>
                         {application.logo || application.company.slice(0, 2).toUpperCase()}
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 6px 0', color: 'var(--ct-text)' }}>{application.title}</h1>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: 'var(--ct-text-secondary)', fontWeight: '500' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Building2 size={16} /> {application.company}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <h1 style={{ fontSize: '22px', fontWeight: '800', margin: '0 0 6px 0', color: 'var(--ct-text)', wordBreak: 'break-word' }}>{application.title}</h1>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ct-text-secondary)', fontWeight: '500', flexWrap: 'wrap' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Building2 size={14} /> {application.company}</span>
                             <span>·</span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16} /> {application.location} ({application.workMode})</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} /> {application.location} ({application.workMode})</span>
                         </div>
                     </div>
                     <div style={{
-                        padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: '700',
+                        padding: '5px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '700', flexShrink: 0,
                         background: 'var(--ct-primary-light)', color: 'var(--ct-primary)', border: '1px solid rgba(79, 70, 229, 0.2)'
                     }}>
                         {application.status}
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
                     <div style={{ background: 'var(--ct-bg-secondary)', padding: '16px', borderRadius: '12px' }}>
                         <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--ct-text-muted)', marginBottom: '4px' }}>Salary</div>
                         <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--ct-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>

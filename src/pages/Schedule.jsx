@@ -125,7 +125,7 @@ const InterviewRow = ({ itv, onDelete }) => {
       </div>
 
       {/* type badge */}
-      <span className={`badge ${isVideo ? 'badge-video' : 'badge-onsite'}`} style={{ flexShrink: 0 }}>
+      <span className={`badge ${isVideo ? 'badge-video' : 'badge-onsite'}`} style={{ flexShrink: 0, alignSelf: 'flex-start' }}>
         {isVideo ? <Video size={9} style={{ marginRight: '4px' }} /> : <Building2 size={9} style={{ marginRight: '4px' }} />}
         {itv.type}
       </span>
@@ -499,12 +499,12 @@ const Schedule = () => {
       </div>
 
       {/* ── Timeline header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <Calendar size={18} style={{ color: 'var(--ct-primary)' }} />
           <span className="section-title">Interview Timeline</span>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { id: 'list',     label: 'List View',    icon: LayoutList },
             { id: 'calendar', label: 'Calendar',     icon: CalendarDays },

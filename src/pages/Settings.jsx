@@ -486,6 +486,7 @@ const Settings = () => {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '16px 18px', borderRadius: '12px', marginBottom: '14px',
+          flexWrap: 'wrap', gap: '12px',
           background: pushPermission === 'granted' ? 'var(--ct-primary-light)' : 'var(--ct-bg)',
           border: `1px solid ${pushPermission === 'granted' ? 'rgba(var(--ct-primary-rgb),0.25)' : 'var(--ct-border)'}`,
         }}>
@@ -570,7 +571,7 @@ const Settings = () => {
 
       {/* ── Danger Zone ── */}
       <SectionCard icon={Trash2} title="Danger Zone" color="var(--ct-danger)">
-        <div className="settings-row">
+        <div className="settings-row" style={{ flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--ct-text)' }}>Delete Account</div>
             <div style={{ fontSize: '12px', color: 'var(--ct-text-muted)', marginTop: '2px' }}>

@@ -251,7 +251,7 @@ const Applications = () => {
       </div>
 
       {/* Status filter chips */}
-      <div style={{ display:'flex', gap:'8px', marginBottom:'14px', flexWrap:'wrap' }}>
+      <div className="status-chip-row" style={{ marginBottom:'14px' }}>
         {['All', 'Interviewing', 'Applied', 'Offer Received', 'Rejected', 'Screening'].map((s) => {
           const count = s === 'All'
             ? applications.length
@@ -340,7 +340,7 @@ const Applications = () => {
           filtered.map((app) => (
             <div
               key={app._id}
-              className={`app-row ${statusBorder[app.status]}`}
+              className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 border-b border-(--ct-border) hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${statusBorder[app.status]}`}
               id={`app-row-${app._id}`}
             >
               {/* Avatar */}
@@ -360,7 +360,7 @@ const Applications = () => {
               </div>
 
               {/* Date applied */}
-              <div style={{ textAlign:'right', flexShrink:0 }}>
+              <div className="app-meta-col">
                 <div style={{ fontSize:'10px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--ct-text-muted)', marginBottom:'2px' }}>
                   Date Applied
                 </div>
@@ -372,7 +372,7 @@ const Applications = () => {
               </div>
 
               {/* Salary */}
-              <div style={{ textAlign:'right', flexShrink:0 }}>
+              <div className="app-meta-col">
                 <div style={{ fontSize:'10px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--ct-text-muted)', marginBottom:'2px' }}>
                   Salary
                 </div>

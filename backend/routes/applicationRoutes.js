@@ -5,22 +5,24 @@ import Application from '../models/Application.js';
 const router = express.Router();
 
 // Get all applications for a user (with optional ?search= query)
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, async (req, res, next) => {
     try {
         const query = { user: req.user._id };
         if (req.query.search) {
-            const re = new RegExp(req.query.search, 'i');
+            // Escape user input before building regex (prevent ReDoS)
+            const escaped = req.query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp(escaped, 'i');
             query.$or = [{ title: re }, { company: re }, { location: re }, { status: re }];
         }
         const applications = await Application.find(query).sort({ dateApplied: -1 });
         res.json(applications);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 // Get single application
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, async (req, res, next) => {
     try {
         const application = await Application.findById(req.params.id);
         if (application && application.user.toString() === req.user._id.toString()) {
@@ -29,12 +31,12 @@ router.get('/:id', protect, async (req, res) => {
             res.status(404).json({ message: 'Application not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 // Create application
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, async (req, res, next) => {
     try {
         const {
             company, title, location, workMode, jobType,
@@ -42,6 +44,10 @@ router.post('/', protect, async (req, res) => {
             logo, color, dateApplied, deadline,
             skills, description, notes, hrName, hrEmail,
         } = req.body;
+
+        if (!company || !title) {
+            return res.status(400).json({ message: 'Company and title are required.' });
+        }
 
         const application = new Application({
             user: req.user._id,
@@ -68,47 +74,48 @@ router.post('/', protect, async (req, res) => {
         const createdApplication = await application.save();
         res.status(201).json(createdApplication);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 // Update application
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', protect, async (req, res, next) => {
     try {
         const application = await Application.findById(req.params.id);
 
-        if (application) {
-            if (application.user.toString() !== req.user._id.toString()) {
-                return res.status(401).json({ message: 'Not authorized' });
-            }
-
-            Object.assign(application, req.body);
-            const updatedApplication = await application.save();
-            res.json(updatedApplication);
-        } else {
-            res.status(404).json({ message: 'Application not found' });
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
         }
+        if (application.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        // Prevent overwriting the user field via body
+        const { user: _u, _id: _i, ...safeBody } = req.body;
+        Object.assign(application, safeBody);
+        const updatedApplication = await application.save();
+        res.json(updatedApplication);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
 // Delete application
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', protect, async (req, res, next) => {
     try {
         const application = await Application.findById(req.params.id);
 
-        if (application) {
-            if (application.user.toString() !== req.user._id.toString()) {
-                return res.status(401).json({ message: 'Not authorized' });
-            }
-            await Application.deleteOne({ _id: req.params.id });
-            res.json({ message: 'Application removed' });
-        } else {
-            res.status(404).json({ message: 'Application not found' });
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
         }
+        if (application.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        await Application.deleteOne({ _id: req.params.id });
+        res.json({ message: 'Application removed' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 

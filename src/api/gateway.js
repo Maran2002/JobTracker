@@ -8,13 +8,22 @@ const api = axios.create({
   },
 });
 
-// Request interceptor: Attach token to every request
+// Request interceptor: Attach token and security headers to every request
 api.interceptors.request.use(
   (config) => {
+    // JWT auth token
     const token = useAuthStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // API security headers — read strictly from env vars (no insecure fallbacks)
+    const apiKey = import.meta.env.VITE_API_KEY;
+    const appKey = import.meta.env.VITE_APP_KEY;
+
+    if (apiKey) config.headers['x-api-key'] = apiKey;
+    if (appKey) config.headers['x-app-key'] = appKey;
+
     return config;
   },
   (error) => {

@@ -21,6 +21,7 @@ import Schedule           from './pages/Schedule';
 import Analytics          from './pages/Analytics';
 import Settings           from './pages/Settings';
 import Notifications      from './pages/Notifications';
+import Admin              from './pages/admin/Admin';
 
 // 404
 const NotFound = () => (
@@ -121,6 +122,11 @@ function App() {
         <Route path="/notifications" element={
           <ProtectedPage searchPlaceholder="Search notifications...">
             <Notifications />
+          </ProtectedPage>
+        } />
+        <Route path="/admin" element={
+          <ProtectedPage searchPlaceholder="Admin Search...">
+            <Admin />
           </ProtectedPage>
         } />
 
