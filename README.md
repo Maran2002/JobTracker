@@ -48,9 +48,8 @@
 | **Backend API Integration** | ✅ Complete |
 | **JWT Authentication** | ✅ Complete |
 | Light / Dark theme system | ✅ Complete |
-| Mobile responsiveness | 🚧 Planned |
+| Mobile responsiveness | ✅ Complete  |
 | Calendar view | 🚧 Planned |
-| TypeScript migration | 🚧 Planned |
 
 ---
 
