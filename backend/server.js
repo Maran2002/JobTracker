@@ -127,7 +127,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'CareerTrack API is running.' });
+    res.status(200).json({ status: 'ok', message: 'ApplyLog API is running.' });
 });
 
 // ── 404 handler (after all routes) ───────────────────────────────────────

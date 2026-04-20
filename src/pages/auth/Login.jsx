@@ -80,7 +80,7 @@ const Login = () => {
               <Briefcase size={22} color="white" />
             </div>
             <div>
-              <div style={{ color: '#fff', fontWeight: '800', fontSize: '18px', letterSpacing: '-0.02em' }}>CareerTrack</div>
+              <div style={{ color: '#fff', fontWeight: '800', fontSize: '18px', letterSpacing: '-0.02em' }}>ApplyLog</div>
               <div style={{ color: '#4f46e5', fontSize: '9px', fontWeight: '700', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Premium Job Tracking</div>
             </div>
           </div>
@@ -161,7 +161,7 @@ const Login = () => {
             <>
               <div style={{ marginBottom: '28px' }}>
                 <h1 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--ct-text)', letterSpacing: '-0.02em' }}>Welcome back 👋</h1>
-                <p style={{ fontSize: '13px', color: 'var(--ct-text-muted)', marginTop: '5px' }}>Sign in to continue to CareerTrack</p>
+                <p style={{ fontSize: '13px', color: 'var(--ct-text-muted)', marginTop: '5px' }}>Sign in to continue to ApplyLog</p>
               </div>
 
               {error && (

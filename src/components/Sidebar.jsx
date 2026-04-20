@@ -41,7 +41,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="sidebar-logo">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h1>CareerTrack</h1>
+              <h1>ApplyLog</h1>
               <p>Premium Job Tracking</p>
             </div>
             <button onClick={onClose} aria-label="Close menu"

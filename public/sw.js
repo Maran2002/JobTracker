@@ -1,5 +1,5 @@
 /* =============================================================
-   CareerTrack — Service Worker (public/sw.js)
+   ApplyLog — Service Worker (public/sw.js)
    Handles Web Push notifications
    ============================================================= */
 
@@ -19,10 +19,10 @@ self.addEventListener('push', (e) => {
   try {
     payload = e.data.json();
   } catch {
-    payload = { title: 'CareerTrack', body: e.data.text(), link: '/' };
+    payload = { title: 'ApplyLog', body: e.data.text(), link: '/' };
   }
 
-  const { title = 'CareerTrack', body = '', link = '/', icon = '/favicon.ico' } = payload;
+  const { title = 'ApplyLog', body = '', link = '/', icon = '/favicon.ico' } = payload;
 
   e.waitUntil(
     self.registration.showNotification(title, {

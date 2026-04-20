@@ -16,13 +16,13 @@ const transporter = nodemailer.createTransport({
  */
 export async function sendOtpEmail(to, otp, purpose = 'your request') {
     await transporter.sendMail({
-        from: `"CareerTrack" <${process.env.MAIL_USER}>`,
+        from: `"ApplyLog" <${process.env.MAIL_USER}>`,
         to,
-        subject: `CareerTrack — Your verification code`,
+        subject: `ApplyLog — Your verification code`,
         html: `
         <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f8fafc;border-radius:16px;">
           <div style="text-align:center;margin-bottom:24px;">
-            <div style="font-size:28px;font-weight:900;color:#4f46e5;letter-spacing:-0.5px;">CareerTrack</div>
+            <div style="font-size:28px;font-weight:900;color:#4f46e5;letter-spacing:-0.5px;">ApplyLog</div>
             <div style="font-size:13px;color:#94a3b8;margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;">Verification Code</div>
           </div>
           <div style="background:#fff;border-radius:12px;padding:28px;border:1px solid #e2e8f0;">
@@ -39,7 +39,7 @@ export async function sendOtpEmail(to, otp, purpose = 'your request') {
             </p>
           </div>
           <p style="text-align:center;font-size:12px;color:#cbd5e1;margin-top:20px;">
-            © ${new Date().getFullYear()} CareerTrack — Premium Job Tracking
+            © ${new Date().getFullYear()} ApplyLog — Premium Job Tracking
           </p>
         </div>
         `,

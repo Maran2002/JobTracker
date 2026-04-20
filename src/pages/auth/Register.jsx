@@ -71,7 +71,7 @@ const Register = () => {
               <Briefcase size={22} color="white" />
             </div>
             <div>
-              <div style={{ color: '#fff', fontWeight: '800', fontSize: '18px', letterSpacing: '-0.02em' }}>CareerTrack</div>
+              <div style={{ color: '#fff', fontWeight: '800', fontSize: '18px', letterSpacing: '-0.02em' }}>ApplyLog</div>
               <div style={{ color: '#4f46e5', fontSize: '9px', fontWeight: '700', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Premium Job Tracking</div>
             </div>
           </div>

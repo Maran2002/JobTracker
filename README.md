@@ -1,4 +1,4 @@
-# CareerTrack — Premium Job Tracking Platform
+# ApplyLog — Premium Job Tracking Platform
 
 > 🚧 **This project is currently under active development.**
 
@@ -6,7 +6,7 @@
 
 ## What We're Building
 
-**CareerTrack** is a premium job application tracking platform designed for serious job seekers. It gives you a centralised, beautiful workspace to manage every stage of your job search — from the first application to the final offer.
+**ApplyLog** is a premium job application tracking platform designed for serious job seekers. It gives you a centralised, beautiful workspace to manage every stage of your job search — from the first application to the final offer.
 
 ### Core Features
 
@@ -109,4 +109,4 @@ The app runs at **http://localhost:5173**.
 
 ---
 
-> Built with ❤️ · © 2026 CareerTrack
+> Built with ❤️ · © 2026 ApplyLog

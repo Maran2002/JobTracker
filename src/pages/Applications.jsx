@@ -125,7 +125,7 @@ const exportToXLSX = (applications) => {
   }));
   worksheet['!cols'] = colWidths;
 
-  XLSX.writeFile(workbook, `CareerTrack_Applications_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.writeFile(workbook, `ApplyLog_Applications_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
 /* ══════════ Applications Page ═══════════ */

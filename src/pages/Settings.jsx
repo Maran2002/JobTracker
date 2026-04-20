@@ -524,7 +524,7 @@ const Settings = () => {
           // { key: 'applications', label: 'Application Updates',   description: 'Status changes and new responses.' },
           // { key: 'weekly',       label: 'Weekly Summary',         description: 'A digest of your job-search activity every Monday.' },
           // { key: 'reminders',    label: 'Smart Reminders',        description: 'AI-powered follow-up reminders.' },
-          { key: 'marketing',    label: 'Product Updates & Tips', description: 'News about CareerTrack features.' },
+          { key: 'marketing',    label: 'Product Updates & Tips', description: 'News about ApplyLog features.' },
         ].map(({ key, label, description }) => (
           <ToggleRow key={key} id={`notif-${key}`} label={label} description={description}
             checked={localNotifs[key] ?? false}

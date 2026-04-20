@@ -80,7 +80,7 @@ const downloadReport = (apps, interviews) => {
   /* --- Summary sheet --- */
   const byStatus = ['Applied','Screening','Interviewing','Offer Received','Rejected'];
   const summaryRows = [
-    ['CareerTrack – Job Search Report'],
+    ['ApplyLog – Job Search Report'],
     ['Generated', new Date().toLocaleDateString('en-US', { dateStyle:'long' })],
     [],
     ['OVERVIEW', ''],
@@ -146,7 +146,7 @@ const downloadReport = (apps, interviews) => {
     XLSX.utils.book_append_sheet(wb, ws, 'Interviews');
   }
 
-  XLSX.writeFile(wb, `CareerTrack_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.writeFile(wb, `ApplyLog_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
 /* ════════════════════════════════════
