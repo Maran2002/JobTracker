@@ -1,13 +1,16 @@
+'use client';
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, Search, Menu, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../routerCompat.js';
 import useAuthStore from '../store/useAuthStore';
-import useNotificationStore from '../store/useNotificationStore';
+// import useNotificationStore from '../store/useNotificationStore';
 import api from '../api/gateway';
 
-const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...' }) => {
-  const { user } = useAuthStore();
-  const { unreadCount, fetchNotifications } = useNotificationStore();
+const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...', initialUser }) => {
+  const storedUser = useAuthStore((state) => state.user);
+  const user = initialUser || storedUser;
+  // const { unreadCount, fetchNotifications } = useNotificationStore();
   const navigate = useNavigate();
 
   const displayName = user?.name || 'User';
@@ -21,7 +24,7 @@ const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...' }) =
   const debounceRef = useRef(null);
 
   /* Fetch notifications count on mount */
-  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+  // useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -96,14 +99,6 @@ const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...' }) =
           onFocus={() => { if (hasResults) setDropOpen(true); }}
           autoComplete="off"
         />
-        {query && (
-          <button
-            onClick={() => { setQuery(''); setDropOpen(false); }}
-            style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ct-text-muted)', padding: '2px', display: 'flex' }}
-          >
-            <X size={13} />
-          </button>
-        )}
 
         {/* Search Dropdown */}
         {dropOpen && (
@@ -161,8 +156,8 @@ const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...' }) =
 
       {/* Right cluster */}
       <div className="header-right">
-        {/* Bell with unread badge */}
-        <button
+        {/* Bell with unread badge commented out */}
+        {/* <button
           className="icon-btn"
           aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
           id="header-notifications"
@@ -182,7 +177,7 @@ const Header = ({ onMenuClick, searchPlaceholder = 'Search applications...' }) =
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-        </button>
+        </button> */}
 
         {/* User */}
         <div className="header-user">

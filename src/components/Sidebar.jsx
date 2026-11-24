@@ -1,11 +1,15 @@
+'use client';
+
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from '../routerCompat.js';
 import {
   LayoutDashboard, Briefcase, GitBranch, CalendarDays,
   BarChart2, Settings, LogOut, Plus, X, Bell,
 } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
-import useNotificationStore from '../store/useNotificationStore';
+// import useNotificationStore from '../store/useNotificationStore';
+import useWindowSize from '../hooks/useWindowSize';
+import { clearSession } from '../../app/actions/api';
 
 const navItems = [
   { path: '/dashboard',     icon: LayoutDashboard, label: 'Dashboard'     },
@@ -13,23 +17,26 @@ const navItems = [
   { path: '/pipeline',      icon: GitBranch,       label: 'Pipeline'      },
   { path: '/schedule',      icon: CalendarDays,    label: 'Schedule'      },
   { path: '/analytics',     icon: BarChart2,       label: 'Analytics'     },
-  { path: '/notifications', icon: Bell,            label: 'Notifications', badge: true },
+  // { path: '/notifications', icon: Bell,            label: 'Notifications', badge: true },
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { logout } = useAuthStore();
-  const { unreadCount } = useNotificationStore();
+  // const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
+  const width = useWindowSize();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout();
-    navigate('/login');
+    await clearSession();
   };
 
   const handleAdd = () => {
     navigate('/applications/new');
     onClose?.();
   };
+
+  const filteredNavItems = navItems.filter(item => !(item.path === '/pipeline' && width < 768));
 
   return (
     <>
@@ -54,7 +61,8 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Nav */}
         <nav className="sidebar-nav">
-          {navItems.map(({ path, icon: Icon, label, badge }) => (
+          {/* eslint-disable-next-line no-unused-vars */}
+          {filteredNavItems.map(({ path, icon: Icon, label, badge }) => (
             <NavLink
               key={path}
               to={path}
@@ -64,7 +72,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             >
               <span style={{ position: 'relative', display: 'inline-flex' }}>
                 <Icon size={17} />
-                {badge && unreadCount > 0 && (
+                {/* {badge && unreadCount > 0 && (
                   <span style={{
                     position: 'absolute', top: '-4px', right: '-6px',
                     minWidth: '14px', height: '14px', borderRadius: '7px',
@@ -75,7 +83,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
-                )}
+                )} */}
               </span>
               <span>{label}</span>
             </NavLink>

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X, RotateCcw, SlidersHorizontal, Check } from "lucide-react";

@@ -61,7 +61,7 @@ router.post('/', protect, async (req, res, next) => {
             source:      source      || 'LinkedIn',
             jobUrl:      jobUrl      || '',
             logo:        logo        || company.slice(0, 2).toUpperCase(),
-            color:       color       || '#4f46e5',
+            color:       color       || '#2f6b5e',
             dateApplied: dateApplied || Date.now(),
             deadline:    deadline    || null,
             skills:      skills      || '',

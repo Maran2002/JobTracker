@@ -1,47 +1,26 @@
-import axios from 'axios';
-import useAuthStore from '../store/useAuthStore';
+'use client';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { requestApi } from '../../app/actions/api';
 
-// Request interceptor: Attach token and security headers to every request
-api.interceptors.request.use(
-  (config) => {
-    // JWT auth token
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    // API security headers — read strictly from env vars (no insecure fallbacks)
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const appKey = import.meta.env.VITE_APP_KEY;
-
-    if (apiKey) config.headers['x-api-key'] = apiKey;
-    if (appKey) config.headers['x-app-key'] = appKey;
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+/** Axios-compatible interface backed by a Next Server Action, never browser fetch/XHR to /api. */
+const request = async (method, url, config = {}) => {
+  const path = url.startsWith('/') ? url : `/${url}`;
+  const query = config.params ? `?${new URLSearchParams(config.params)}` : '';
+  const result = await requestApi(method.toUpperCase(), `${path}${query}`, method === 'get' ? undefined : config.data);
+  if (result.status < 200 || result.status >= 300) {
+    const error = new Error(result.data?.message || `Request failed (${result.status})`);
+    error.response = { status: result.status, data: result.data };
+    throw error;
   }
-);
+  return { data: result.data, status: result.status };
+};
 
-// Response interceptor: Handle errors (e.g., 401 Unauthorized)
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear auth store and redirect to login if unauthorized
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+const api = {
+  get: (url, config) => request('get', url, config),
+  post: (url, data, config) => request('post', url, { ...config, data }),
+  put: (url, data, config) => request('put', url, { ...config, data }),
+  patch: (url, data, config) => request('patch', url, { ...config, data }),
+  delete: (url, config = {}) => request('delete', url, config),
+};
 
 export default api;

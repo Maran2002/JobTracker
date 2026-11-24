@@ -1,9 +1,11 @@
+'use client';
+
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-const MainLayout = ({ children, searchPlaceholder }) => {
+const MainLayout = ({ children, searchPlaceholder, initialUser }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -17,6 +19,7 @@ const MainLayout = ({ children, searchPlaceholder }) => {
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           searchPlaceholder={searchPlaceholder}
+          initialUser={initialUser}
         />
 
         <main className="main-content" id="main-content" role="main">

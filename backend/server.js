@@ -1,6 +1,4 @@
-import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -8,7 +6,7 @@ import hpp from 'hpp';
 
 import connectDB from './db/connect.js';
 import { protectApi } from './middleware/apiSecurityMiddleware.js';
-import { globalLimiter, authLimiter, otpLimiter, writeLimiter } from './middleware/rateLimitMiddleware.js';
+import { globalLimiter, authLimiter, authAccountLimiter, otpLimiter, otpIpLimiter, writeLimiter } from './middleware/rateLimitMiddleware.js';
 import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 import authRoutes         from './routes/authRoutes.js';
@@ -21,12 +19,13 @@ import adminRoutes        from './routes/adminRoutes.js';
 
 
 // ── Connect to MongoDB ──────────────────────────────────────────────────
-connectDB();
+export const dbReady = connectDB();
 
 const app = express();
 
-// ── Trust proxy (needed for accurate IP rate-limiting behind reverse proxy) ─
-app.set('trust proxy', 1);
+// The shared Next listener forwards a socket-derived client IP to the private API.
+// Express ignores forwarded headers to avoid spoofed client IPs.
+app.set('trust proxy', false);
 
 // ── Security headers (helmet) ───────────────────────────────────────────
 app.use(helmet({
@@ -42,27 +41,6 @@ app.use(helmet({
     hidePoweredBy:     true,
     // XSS filter
     xssFilter:         true,
-}));
-
-// ── CORS ────────────────────────────────────────────────────────────────
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    process.env.FRONTEND_URL,
-].filter(Boolean);
-
-app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. Postman, curl) only in development
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error(`CORS: Origin ${origin} not allowed.`));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'x-app-key'],
 }));
 
 // ── Body parsing — limit payload size to prevent large-payload DoS ──────
@@ -93,11 +71,11 @@ app.use(compression({
     },
 }));
 
-// ── API key guard — all /api routes ─────────────────────────────────────
-app.use('/api', protectApi);
-
 // ── Global rate limiter — all /api routes ────────────────────────────────
 app.use('/api', globalLimiter);
+
+// ── API key guard — all /api routes ─────────────────────────────────────
+app.use('/api', protectApi);
 
 // ── Write rate limiter — all mutating /api routes ────────────────────────
 app.use('/api', writeLimiter);
@@ -105,12 +83,18 @@ app.use('/api', writeLimiter);
 // ── Routes with specific rate limits ─────────────────────────────────────
 
 // Auth: login + register — strict rate limit
-app.use('/api/auth/login',           authLimiter);
-app.use('/api/auth/register',        authLimiter);
+app.use('/api/auth/login',           authLimiter, authAccountLimiter);
+app.use('/api/auth/register',        authLimiter, authAccountLimiter);
 // OTP endpoints — very strict
-app.use('/api/auth/verify-2fa-login', otpLimiter);
-app.use('/api/user/verify-otp',       otpLimiter);
-app.use('/api/user/send-otp',         otpLimiter);
+app.use('/api/auth/verify-2fa-login', otpIpLimiter, otpLimiter);
+app.use('/api/auth/verify-register',  otpIpLimiter, otpLimiter);
+app.use('/api/auth/forgot-password',  otpIpLimiter, otpLimiter);
+app.use('/api/auth/reset-password',   otpIpLimiter, otpLimiter);
+app.use('/api/user/verify-otp',       otpIpLimiter, otpLimiter);
+app.use('/api/user/send-otp',         otpIpLimiter, otpLimiter);
+app.use('/api/user/change-password',  otpIpLimiter, otpLimiter);
+app.use('/api/user/toggle-2fa',       otpIpLimiter, otpLimiter);
+app.use('/api/user/delete-account',   otpIpLimiter, otpLimiter);
 
 // Mount routes
 app.use('/api/auth',          authRoutes);
@@ -136,11 +120,11 @@ app.use(notFoundHandler);
 // ── Global error handler (must be last) ──────────────────────────────────
 app.use(globalErrorHandler);
 
-// ── Start server ──────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`[SERVER] Running on port ${PORT}`);
-    if (!process.env.API_KEY || !process.env.APP_KEY) {
-        console.warn('[SECURITY] WARNING: API_KEY or APP_KEY is not set!');
-    }
-});
+// In Next.js mode, the app is mounted into the same HTTP server as the SSR site.
+// Keep this file independently runnable for local API maintenance only.
+if (process.env.STANDALONE_API === 'true') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`[SERVER] API running on port ${PORT}`));
+}
+
+export default app;

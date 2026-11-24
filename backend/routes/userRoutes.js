@@ -144,38 +144,38 @@ router.post('/change-password', protect, async (req, res, next) => {
 });
 
 /* ═══════════════════════════════════════════
-   Toggle 2FA
+   Toggle 2FA (Commented out)
    POST /api/user/toggle-2fa  { otp }
    ═══════════════════════════════════════════ */
-router.post('/toggle-2fa', protect, async (req, res, next) => {
-    const { otp } = req.body;
-    if (!otp) return res.status(400).json({ message: 'OTP is required' });
-    try {
-        const user = await User.findById(req.user._id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        if (!user.otpCode || user.otpPurpose !== 'toggle-2fa') {
-            return res.status(400).json({ message: 'No pending 2FA OTP. Request one first.' });
-        }
-        if (new Date() > user.otpExpiry) {
-            return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
-        }
-        const valid = await bcrypt.compare(otp, user.otpCode);
-        if (!valid) return res.status(400).json({ message: 'Invalid OTP' });
-
-        user.isTwoFactorEnabled = !user.isTwoFactorEnabled;
-        user.otpCode            = null;
-        user.otpExpiry          = null;
-        user.otpPurpose         = null;
-        await user.save();
-
-        res.json({
-            isTwoFactorEnabled: user.isTwoFactorEnabled,
-            message: `Two-Factor Authentication ${user.isTwoFactorEnabled ? 'enabled' : 'disabled'}.`,
-        });
-    } catch (error) {
-        next(error);
-    }
-});
+// router.post('/toggle-2fa', protect, async (req, res, next) => {
+//     const { otp } = req.body;
+//     if (!otp) return res.status(400).json({ message: 'OTP is required' });
+//     try {
+//         const user = await User.findById(req.user._id);
+//         if (!user) return res.status(404).json({ message: 'User not found' });
+//         if (!user.otpCode || user.otpPurpose !== 'toggle-2fa') {
+//             return res.status(400).json({ message: 'No pending 2FA OTP. Request one first.' });
+//         }
+//         if (new Date() > user.otpExpiry) {
+//             return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+//         }
+//         const valid = await bcrypt.compare(otp, user.otpCode);
+//         if (!valid) return res.status(400).json({ message: 'Invalid OTP' });
+// 
+//         user.isTwoFactorEnabled = !user.isTwoFactorEnabled;
+//         user.otpCode            = null;
+//         user.otpExpiry          = null;
+//         user.otpPurpose         = null;
+//         await user.save();
+// 
+//         res.json({
+//             isTwoFactorEnabled: user.isTwoFactorEnabled,
+//             message: `Two-Factor Authentication ${user.isTwoFactorEnabled ? 'enabled' : 'disabled'}.`,
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// });
 
 /* ═══════════════════════════════════════════
    Delete Account (soft delete)
@@ -252,7 +252,7 @@ router.delete('/push-subscribe', protect, async (req, res, next) => {
 });
 
 /* ── GET /api/user/vapid-public-key ── (frontend needs this to subscribe) */
-router.get('/vapid-public-key', (req, res) => {
+router.get('/vapid-public-key', protect, (req, res) => {
     res.json({ publicKey: process.env.VAPID_PUBLIC_KEY });
 });
 

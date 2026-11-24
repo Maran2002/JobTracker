@@ -1,68 +1,63 @@
-import rateLimit from 'express-rate-limit';
+import { createHash } from 'node:crypto';
+import jwt from 'jsonwebtoken';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
-/* ─────────────────────────────────────────────────────────
-   Shared response handler for rate-limit rejections
-───────────────────────────────────────────────────────── */
+const readClientIp = (req) => {
+    const forwardedIp = req.get('x-rate-limit-client-ip');
+    return forwardedIp || req.ip || req.socket.remoteAddress || 'unknown';
+};
+
+const verifiedUserId = (req) => {
+    const authorization = req.get('authorization') || '';
+    if (!authorization.startsWith('Bearer ') || !process.env.JWT_SECRET) return null;
+    try {
+        const payload = jwt.verify(authorization.slice(7), process.env.JWT_SECRET);
+        return typeof payload === 'object' && payload?.id ? String(payload.id) : null;
+    } catch {
+        return null;
+    }
+};
+
+const identityKey = (req) => {
+    const userId = verifiedUserId(req);
+    return userId ? `user:${userId}` : `ip:${ipKeyGenerator(readClientIp(req))}`;
+};
+
+const accountKey = (req) => {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    if (!email) return identityKey(req);
+    const digest = createHash('sha256').update(email).digest('hex');
+    return `account:${digest}`;
+};
+
 const rateLimitHandler = (req, res) => {
+    res.set('Cache-Control', 'no-store');
     res.status(429).json({
         status: 'error',
         message: 'Too many requests. Please slow down and try again shortly.',
     });
 };
 
-/* ─────────────────────────────────────────────────────────
-   GLOBAL limiter — applied to ALL /api routes
-   100 requests per 15-minute window per IP
-───────────────────────────────────────────────────────── */
-export const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,  // 15 minutes
-    max: 100,
-    standardHeaders: true,      // Return RateLimit-* headers (RFC 6585)
-    legacyHeaders: false,       // Disable X-RateLimit-* headers
-    message: rateLimitHandler,
+const createLimiter = ({ windowMs, max, keyGenerator = identityKey }) => rateLimit({
+    windowMs,
+    max,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    keyGenerator,
     handler: rateLimitHandler,
-    skipSuccessfulRequests: false,
+    passOnStoreError: false,
 });
 
-/* ─────────────────────────────────────────────────────────
-   AUTH limiter — strict: 10 attempts per 15 minutes
-   Applies to /api/auth/login and /api/auth/register
-───────────────────────────────────────────────────────── */
-export const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: rateLimitHandler,
-    handler: rateLimitHandler,
-    skipSuccessfulRequests: false,
-});
+// Counts signed-in traffic per verified user; unauthenticated traffic uses socket IP.
+export const globalLimiter = createLimiter({ windowMs: 15 * 60 * 1000, max: 240 });
 
-/* ─────────────────────────────────────────────────────────
-   OTP/2FA limiter — very strict: 5 attempts per 10 minutes
-   Prevents brute-force on OTP endpoints
-───────────────────────────────────────────────────────── */
-export const otpLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000,
-    max: 5,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: rateLimitHandler,
-    handler: rateLimitHandler,
-    skipSuccessfulRequests: false,
-});
+// Separate IP and account buckets prevent one noisy account from exhausting all auth capacity.
+export const authLimiter = createLimiter({ windowMs: 15 * 60 * 1000, max: 20, keyGenerator: (req) => `auth-ip:${ipKeyGenerator(readClientIp(req))}` });
+export const authAccountLimiter = createLimiter({ windowMs: 30 * 60 * 1000, max: 6, keyGenerator: accountKey });
 
-/* ─────────────────────────────────────────────────────────
-   WRITE limiter — moderate: 30 writes per 10 minutes
-   Applies to POST/PUT/PATCH/DELETE on data routes
-───────────────────────────────────────────────────────── */
-export const writeLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000,
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: rateLimitHandler,
-    handler: rateLimitHandler,
-    // Only count non-GET requests
-    skip: (req) => req.method === 'GET',
-});
+// OTP and password-reset operations are additionally limited per account.
+export const otpLimiter = createLimiter({ windowMs: 10 * 60 * 1000, max: 5, keyGenerator: accountKey });
+export const otpIpLimiter = createLimiter({ windowMs: 10 * 60 * 1000, max: 20, keyGenerator: (req) => `otp-ip:${ipKeyGenerator(readClientIp(req))}` });
+
+// Mutation volume is limited separately from reads.
+export const writeLimiter = createLimiter({ windowMs: 10 * 60 * 1000, max: 60 });

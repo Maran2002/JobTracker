@@ -54,11 +54,11 @@ const interviewSchema = new mongoose.Schema({
     },
     logoColor: {
         type: String,
-        default: '#4f46e5'
+        default: '#2f6b5e'
     },
     color: {
         type: String,
-        default: '#4f46e5'
+        default: '#2f6b5e'
     }
 }, {
     timestamps: true

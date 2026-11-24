@@ -38,10 +38,12 @@ const useAuthStore = create(
           isAuthenticated: false,
           permissions: [],
         }),
+      clearLegacyToken: () => set({ token: null }),
     }),
     {
       name: 'ct-auth-storage',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'token')),
     }
   )
 );

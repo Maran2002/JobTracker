@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarDays, X, Video, Building2, Plus, Loader2, Trash2 } from 'lucide-react';
@@ -52,11 +54,11 @@ const displayToTime = (disp) => {
     }
 }
 
-const ACCENT_COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
+const ACCENT_COLORS = ['#2f6b5e', '#7c9574', '#c59a54', '#bb6652', '#6b8290', '#a5715e', '#896c7d'];
 
 const AddInterviewModal = ({ onClose, onSaved, applicationId = null, applicationData = null, existingInterviews = [] }) => {
     const [form, setForm] = useState({
-        company: '', title: '', location: '', logo: '', color: '#4f46e5',
+        company: '', title: '', location: '', logo: '', color: '#2f6b5e',
     });
     const [rounds, setRounds] = useState([
         { id: Date.now(), round: 1, roundName: 'Round 1', date: '', time: '', venue: '', type: 'VIDEO CALL', _id: null }
@@ -81,7 +83,7 @@ const AddInterviewModal = ({ onClose, onSaved, applicationId = null, application
                 title: appDetails.title || '',
                 location: appDetails.location || '',
                 logo: appDetails.logo || appDetails.company?.slice(0, 2).toUpperCase() || '',
-                color: appDetails.color || '#4f46e5'
+                color: appDetails.color || '#2f6b5e'
             }));
         }
     }, [appDetails]);
@@ -94,7 +96,7 @@ const AddInterviewModal = ({ onClose, onSaved, applicationId = null, application
                 title: first.title || '',
                 location: first.location || '',
                 logo: first.logo || '',
-                color: first.color || '#4f46e5'
+                color: first.color || '#2f6b5e'
             });
             setRounds(existingInterviews.map((itv, i) => ({
                 id: Date.now() + i,
@@ -112,7 +114,7 @@ const AddInterviewModal = ({ onClose, onSaved, applicationId = null, application
                 title: applicationData.title || '',
                 location: applicationData.location || '',
                 logo: applicationData.logo || applicationData.company?.slice(0, 2).toUpperCase() || '',
-                color: applicationData.color || '#4f46e5'
+                color: applicationData.color || '#2f6b5e'
             });
         }
     }, [existingInterviews, applicationData]);
@@ -123,8 +125,6 @@ const AddInterviewModal = ({ onClose, onSaved, applicationId = null, application
         document.body.style.overflow = 'hidden';
         return () => { document.removeEventListener('keydown', h); document.body.style.overflow = ''; };
     }, [onClose]);
-
-    const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
     const handleRoundChange = (id, field, value) => {
         setRounds(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
@@ -318,7 +318,7 @@ const AddInterviewModal = ({ onClose, onSaved, applicationId = null, application
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <div className="modal-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                             <div>
                                                 <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ct-text-muted)', display: 'block', marginBottom: '5px' }}>Venue / Link *</label>
                                                 <input value={r.venue} onChange={e => handleRoundChange(r.id, 'venue', e.target.value)} placeholder="e.g. meet.google.com/..." style={inputStyle(rErr.venue)} />

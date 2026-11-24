@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
         dateFormat:  { type: String, default: 'MMM DD, YYYY' },
         timeFormat:  { type: String, default: '12h' },
         timezone:    { type: String, default: 'auto' },
-        accentColor: { type: String, default: '#4f46e5' },
+        accentColor: { type: String, default: '#2f6b5e' },
         notifications: {
             interview:    { type: Boolean, default: true },
             applications: { type: Boolean, default: true },
@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false,
+    },
+    isEmailVerified: {
+        type: Boolean,
+        default: true,
     },
     // ── Two-Factor Auth ──────────────────────────────────────
     isTwoFactorEnabled: {

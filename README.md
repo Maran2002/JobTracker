@@ -1,111 +1,27 @@
-# ApplyLog — Premium Job Tracking Platform
+# ApplyLog — CareerTrack
 
-> 🚧 **This project is currently under active development.**
+ApplyLog is a responsive job application tracker built with Next.js App Router, React, Express, and MongoDB. Next.js renders pages on the server. The Next and Express handlers share one HTTP listener and port; browser-origin requests to `/api/*` are rejected.
 
----
+## Run locally
 
-## What We're Building
+1. Create one `.env` file in the repository root with `PORT`, `MONGO_URI`, `JWT_SECRET`, `API_KEY`, `APP_KEY`, and any mail or push notification settings used by the backend.
+2. From the repository root run `npm install` and `npm run dev`.
+3. Open `http://localhost:3000` (or the port set by `PORT`).
 
-**ApplyLog** is a premium job application tracking platform designed for serious job seekers. It gives you a centralised, beautiful workspace to manage every stage of your job search — from the first application to the final offer.
+Production uses `npm run build` followed by `npm start`. Run the app from the repository root; the backend package is an internal data service and is not started separately.
 
-### Core Features
+## Architecture
 
-- 📊 **Dashboard** — Live overview of total applications, interviews, offers, and rejections with trend indicators and an activity chart.
-- 📋 **Applications** — Full list view of job pursuits. Features status-based filtering and a velocity chart.
-- ➕ **Add Application** — A rich, **multi-step wizard** to log job details including company brand colors, job URLs, salary, currency, priority, and recruiter contact info.
-- 🔀 **Pipeline** — Interactive **Kanban board** with native drag-and-drop. Move applications between 5 stages (Applied → Screening → Interview → Offer → Rejected) with instant API persistence.
-- 📅 **Schedule** — Interview timeline with upcoming interviews, prep tips, and automated scheduling reminders.
-- 📈 **Analytics** — Data-driven insights including conversion funnels, monthly volume charts, and job-type distributions.
-- ⚙️ **Settings** — Profile management, sleek **Light/Dark mode** toggles, and notification controls.
+- `app/` — Next.js App Router layouts, routes, SSR data loaders, and Server Actions.
+- `server.js` — one HTTP listener that dispatches `/api/*` internally to Express and all other requests to Next.js.
+- `backend/` — Express routes, MongoDB models, middleware, and utilities mounted on the shared listener.
+- `src/` — existing React screens, shared UI, styles, client state, and small navigation compatibility helpers.
+- `public/` — static assets and the web push service worker.
 
----
+Protected pages validate the HttpOnly `careertrack_session` cookie on the server. Server Components load private page data with `cache: 'no-store'`; interactive mutations and searches call a constrained Next Server Action that forwards requests internally. Backend keys and bearer tokens are not exposed to browser JavaScript. API keys are server environment variables, never `NEXT_PUBLIC_*` variables.
 
-## Tech Stack (MERN)
+## Routes
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19 + Vite 6 |
-| **Backend** | Node.js + Express |
-| **Database** | MongoDB + Mongoose |
-| **Auth** | JWT (JSON Web Tokens) |
-| **State** | Zustand 5 (with cross-tab persistence) |
-| **Styling** | Tailwind CSS 4 + custom CSS-in-JS tokens |
-| **UI Library** | HeroUI 3 + Lucide Icons |
-| **Toast** | Vibe-Toast |
+`/login`, `/register`, `/dashboard`, `/applications`, `/applications/new`, `/applications/edit/[id]`, `/applications/[id]`, `/pipeline`, `/schedule`, `/analytics`, `/settings`, and `/admin`.
 
----
-
-## Project Status
-
-| Module | Status |
-|---|---|
-| Dashboard | ✅ Complete |
-| Applications list | ✅ Complete |
-| **Add Application Form (Multi-step)** | ✅ Complete |
-| **Pipeline Kanban (Drag-and-Drop)** | ✅ Complete |
-| Schedule / Interview Timeline | ✅ Complete |
-| Analytics | ✅ Complete |
-| **Backend API Integration** | ✅ Complete |
-| **JWT Authentication** | ✅ Complete |
-| Light / Dark theme system | ✅ Complete |
-| Mobile responsiveness | ✅ Complete  |
-| Calendar view | 🚧 Planned |
-
----
-
-## Getting Started
-
-### 1. Prerequisite
-Ensure you have a MongoDB instance running (Local or MongoDB Atlas).
-
-### 2. Backend Setup
-```bash
-# Navigate to backend
-cd backend
-
-# Create .env file
-# PORT=5000
-# MONGO_URI=your_mongodb_uri
-# JWT_SECRET=your_secret
-
-# Install & Run
-npm install
-npm dev
-```
-
-### 3. Frontend Setup
-```bash
-# Navigate to root
-cd ..
-
-# Install & Run
-npm install
-npm run dev
-```
-
-The app runs at **http://localhost:5173**.
-
----
-
-## Folder Structure
-
-```
-├── backend/           # Express Server + MongoDB Models
-│   ├── models/        # Application, Interview, User schemas
-│   ├── routes/        # API Endpoints
-│   └── server.js      # Entry point
-├── src/
-│   ├── api/           # Axios gateway & interceptors
-│   ├── store/         # Zustand stores (Auth, Theme)
-│   ├── layouts/       # App shell & Navigation
-│   ├── components/    # Reusable UI (Sidebar, Header)
-│   └── pages/
-│       ├── auth/      # Login, Register
-│       ├── Pipeline.jsx
-│       ├── AddApplication.jsx
-│       └── ...
-```
-
----
-
-> Built with ❤️ · © 2026 ApplyLog
+The application keeps the existing design system, theme preferences, interview scheduling, analytics, notifications, and responsive layout. The pipeline remains omitted from the mobile sidebar.

@@ -7,7 +7,7 @@ const DEFAULTS = {
   dateFormat:  'MMM DD, YYYY',
   timeFormat:  '12h',
   timezone:    'auto',
-  accentColor: '#4f46e5',
+  accentColor: '#2f6b5e',
   notifications: {
     interview:    true,
     applications: true,
@@ -64,7 +64,10 @@ const usePreferencesStore = create(
 
       /** Call once on app mount to restore CSS variables from persisted state */
       initPreferences: () => {
-        applyAccentColor(get().accentColor || DEFAULTS.accentColor);
+        const saved = get().accentColor || DEFAULTS.accentColor;
+        const accentColor = saved.toLowerCase() === '#4f46e5' ? DEFAULTS.accentColor : saved;
+        if (accentColor !== saved) set({ accentColor });
+        applyAccentColor(accentColor);
       },
 
       /** Load preferences from the backend (called after auth) */
@@ -72,6 +75,7 @@ const usePreferencesStore = create(
         try {
           const { data } = await api.get('/user/preferences');
           const merged = { ...DEFAULTS, ...data };
+          if (merged.accentColor?.toLowerCase() === '#4f46e5') merged.accentColor = DEFAULTS.accentColor;
           set({ ...merged, isLoaded: true });
           applyAccentColor(merged.accentColor);
         } catch {
@@ -87,7 +91,6 @@ const usePreferencesStore = create(
           timeFormat:  s.timeFormat,
           timezone:    s.timezone,
           accentColor: s.accentColor,
-          notifications: { ...s.notifications },
           ...updates,
           notifications: {
             ...s.notifications,
@@ -200,6 +203,9 @@ const usePreferencesStore = create(
         accentColor:   s.accentColor,
         notifications: s.notifications,
       }),
+      // Keep SSR and the browser's first render on the same defaults. The
+      // saved preferences are restored from AppProviders after hydration.
+      skipHydration: true,
     }
   )
 );

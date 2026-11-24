@@ -70,7 +70,7 @@ const applicationSchema = new mongoose.Schema({
     },
     color: {
         type: String,
-        default: '#4f46e5',
+        default: '#2f6b5e',
     },
     skills: {
         type: String,
