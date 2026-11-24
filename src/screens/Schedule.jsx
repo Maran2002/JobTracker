@@ -21,6 +21,10 @@ const safeDate = (v) => {
   return isNaN(d.getTime()) ? null : d;
 };
 
+const interviewColor = (color) => (
+  color?.toLowerCase() === '#4f46e5' ? '#2f6b5e' : color || '#2f6b5e'
+);
+
 /* relative label for a parsed Date at midnight */
 const dayLabel = (parsed) => {
   if (!parsed) return null;
@@ -81,66 +85,49 @@ const InterviewRow = ({ itv, onDelete }) => {
   const displayDate = formatDate(itv.date) || itv.date;
 
   return (
-    <div className="timeline-item" style={{
-      background: isToday ? 'var(--ct-primary-light)' : 'var(--ct-card)',
-      border: `1px solid ${isToday ? 'rgba(var(--ct-primary-rgb),0.2)' : 'var(--ct-border)'}`,
-    }}>
-      {/* left color bar */}
-      <div className="timeline-left-bar" style={{ background: itv.color || 'var(--ct-primary)' }} />
+    <div className={`schedule-interview-card${isToday ? ' is-today' : ''}`}>
+      <div className="schedule-interview-accent" style={{ background: interviewColor(itv.color) }} />
 
-      {/* avatar */}
-      <div className="company-avatar" style={{ background: `${itv.logoColor || itv.color || 'var(--ct-primary)'}18`, color: itv.logoColor || itv.color || 'var(--ct-primary)', fontSize: '13px' }}>
+      <div className="company-avatar schedule-interview-avatar" style={{ background: `${interviewColor(itv.logoColor || itv.color)}18`, color: interviewColor(itv.logoColor || itv.color) }}>
         {itv.logo || itv.company?.slice(0, 2).toUpperCase()}
       </div>
 
-      {/* info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-          <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--ct-text)' }}>
-            {itv.title} {itv.roundName && <span style={{ opacity: 0.6 }}>— {itv.roundName}</span>}
+      <div className="schedule-interview-main">
+        <div className="schedule-interview-heading">
+          <div className="schedule-interview-title-wrap">
+            <span className="schedule-interview-title">
+              {itv.title}{itv.roundName && <span className="schedule-interview-round"> — {itv.roundName}</span>}
+            </span>
+            {relabel && (
+              <span className={`schedule-interview-day${isToday ? ' is-today' : ''}`}>
+                {relabel}
+              </span>
+            )}
+          </div>
+          <span className={`badge ${isVideo ? 'badge-video' : 'badge-onsite'} schedule-interview-type`}>
+            {isVideo ? <Video size={11} /> : <Building2 size={11} />}
+            {itv.type}
           </span>
-          {relabel && (
-            <span style={{
-              fontSize: '9px', fontWeight: '700', padding: '2px 7px', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '0.07em',
-              background: isToday ? 'var(--ct-primary)' : 'var(--ct-warning-light)',
-              color: isToday ? '#fff' : 'var(--ct-warning)',
-            }}>
-              {relabel}
-            </span>
-          )}
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--ct-text-muted)', marginBottom: '9px' }}>
-          {itv.company} · {itv.location}
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: 'var(--ct-text-muted)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={11} />{displayDate}</span>
-          {itv.time && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={11} />{formatTime(itv.time)}</span>}
-          {itv.venue && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              <MapPin size={11} />{itv.venue}
-            </span>
-          )}
+
+        <div className="schedule-interview-company">{itv.company}{itv.location ? ` · ${itv.location}` : ''}</div>
+
+        <div className="schedule-interview-meta">
+          <span><Calendar size={12} />{displayDate}</span>
+          {itv.time && <span><Clock size={12} />{formatTime(itv.time)}</span>}
+          {itv.venue && <span className="schedule-interview-venue"><MapPin size={12} />{itv.venue}</span>}
         </div>
       </div>
 
-      {/* type badge */}
-      <span className={`badge ${isVideo ? 'badge-video' : 'badge-onsite'}`} style={{ flexShrink: 0, alignSelf: 'flex-start' }}>
-        {isVideo ? <Video size={9} style={{ marginRight: '4px' }} /> : <Building2 size={9} style={{ marginRight: '4px' }} />}
-        {itv.type}
-      </span>
-
-      {/* actions */}
-      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-        <button className="icon-btn" onClick={handleJoin} title="Join / Open link">
+      <div className="schedule-interview-actions">
+        <button className="icon-btn" onClick={handleJoin} title="Join / Open link" aria-label={`Open interview link for ${itv.company}`}>
           <Link2 size={14} />
         </button>
         <button
-          className="icon-btn"
+          className="icon-btn schedule-interview-delete"
           onClick={() => onDelete(itv._id)}
           title="Delete interview"
-          style={{ '--hover-color': 'var(--ct-danger)', '--hover-bg': 'var(--ct-danger-light)' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ct-danger)'; e.currentTarget.style.color = 'var(--ct-danger)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+          aria-label={`Delete interview for ${itv.company}`}
         >
           <Trash2 size={14} />
         </button>
@@ -577,18 +564,9 @@ const Schedule = ({ initialInterviews = [] }) => {
                     <span style={{ fontSize: '11px', color: 'var(--ct-primary)', fontWeight: '600' }}>{showPast ? 'Hide' : 'Show'}</span>
                   </div>
                   {showPast && [...groups.past].reverse().map(itv => (
-                    <div key={itv._id} style={{ opacity: 0.65 }}>
-                      <InterviewRow itv={itv} onDelete={handleDelete} />
-                    </div>
+                    <InterviewRow key={itv._id} itv={itv} onDelete={handleDelete} />
                   ))}
                 </>
-              )}
-
-              {/* nothing active */}
-              {groups.today.length === 0 && groups.thisWeek.length === 0 && groups.upcoming.length === 0 && (
-                <div className="ct-card" style={{ padding: '32px', textAlign: 'center', color: 'var(--ct-text-muted)', fontSize: '13px' }}>
-                  No upcoming interviews. {groups.past.length > 0 && 'All interviews are in the past.'}
-                </div>
               )}
             </>
           )}

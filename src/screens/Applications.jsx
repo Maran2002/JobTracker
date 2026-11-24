@@ -23,6 +23,10 @@ const statusBorder = {
   'Screening':      'sl-screening',
 };
 
+const applicationColor = (color) => (
+  color?.toLowerCase() === '#4f46e5' ? '#2f6b5e' : color || '#2f6b5e'
+);
+
 /* ── Filter config ───────────────────────────── */
 const APPLICATIONS_FILTER_CONFIG = [
   {
@@ -196,9 +200,9 @@ const Applications = ({ initialApplications = [] }) => {
   }, [applications, statusFilter, appliedFilters]);
 
   return (
-    <div className="page-enter">
+    <div className="page-enter applications-page">
       {/* Page header */}
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'26px', flexWrap:'wrap', gap:'14px' }}>
+      <div className="applications-page-header" style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'26px', flexWrap:'wrap', gap:'14px' }}>
         <div>
           <h1 className="page-title">Applications</h1>
           <p className="page-subtitle">
@@ -210,7 +214,7 @@ const Applications = ({ initialApplications = [] }) => {
           </p>
         </div>
 
-        <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
+        <div className="applications-header-actions" style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
           {/* Filter button */}
           <button
             className="btn-secondary"
@@ -253,7 +257,7 @@ const Applications = ({ initialApplications = [] }) => {
       </div>
 
       {/* Status filter chips */}
-      <div className="status-chip-row" style={{ marginBottom:'14px' }}>
+      <div className="status-chip-row applications-status-filters" style={{ marginBottom:'14px' }}>
         {['All', 'Interviewing', 'Applied', 'Offer Received', 'Rejected', 'Screening'].map((s) => {
           const count = s === 'All'
             ? applications.length
@@ -329,7 +333,7 @@ const Applications = ({ initialApplications = [] }) => {
       )}
 
       {/* Applications list */}
-      <div className="ct-card" style={{ overflow:'hidden', marginBottom:'20px' }}>
+      <div className="ct-card applications-list">
         {loading ? (
           <div style={{ padding:'40px', textAlign:'center', color:'var(--ct-text-muted)', fontSize:'14px' }}>
             Loading applications…
@@ -342,27 +346,27 @@ const Applications = ({ initialApplications = [] }) => {
           filtered.map((app) => (
             <div
               key={app._id}
-              className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 border-b border-(--ct-border) hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${statusBorder[app.status]}`}
+              className={`application-list-item ${statusBorder[app.status] || ''}`}
               id={`app-row-${app._id}`}
             >
               {/* Avatar */}
               <div
-                className="company-avatar"
-                style={{ background:`${app.color || 'var(--ct-primary)'}18`, color: app.color || 'var(--ct-primary)', fontSize:'14px' }}
+                className="company-avatar application-list-avatar"
+                style={{ background:`${applicationColor(app.color)}18`, color: applicationColor(app.color), fontSize:'14px' }}
               >
                 {app.logo || app.company?.slice(0, 2).toUpperCase()}
               </div>
 
               {/* Title + company */}
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontWeight:'700', fontSize:'14px', color:'var(--ct-text)', overflowWrap:'anywhere' }}>{app.title}</div>
-                <div style={{ fontSize:'12px', color:'var(--ct-text-muted)', marginTop:'2px', overflowWrap:'anywhere' }}>
+              <div className="application-list-primary">
+                <div className="application-list-title">{app.title}</div>
+                <div className="application-list-company">
                   {app.company} · {app.location}
                 </div>
               </div>
 
               {/* Date applied */}
-              <div className="app-meta-col">
+              <div className="app-meta-col application-list-meta">
                 <div style={{ fontSize:'10px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--ct-text-muted)', marginBottom:'2px' }}>
                   Date Applied
                 </div>
@@ -374,7 +378,7 @@ const Applications = ({ initialApplications = [] }) => {
               </div>
 
               {/* Salary */}
-              <div className="app-meta-col">
+              <div className="app-meta-col application-list-meta">
                 <div style={{ fontSize:'10px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--ct-text-muted)', marginBottom:'2px' }}>
                   Salary
                 </div>
@@ -383,25 +387,26 @@ const Applications = ({ initialApplications = [] }) => {
                 </div>
               </div>
 
-              {/* Status badge */}
-              <span className={`badge ${statusClass[app.status]}`} style={{minWidth: "100px"}}>{app.status}</span>
-
-              {/* Actions */}
-              <div className="application-row-actions" style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); navigate(`/applications/${app._id}`); }}
-                  style={{ background: 'var(--ct-bg-secondary)', border: '1px solid var(--ct-border)', borderRadius: '6px', padding: '6px', color: 'var(--ct-text-secondary)', cursor: 'pointer' }}
-                  title="View Details"
-                >
-                  <Eye size={14} />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); navigate(`/applications/edit/${app._id}`, { state: { application: app } }); }}
-                  style={{ background: 'var(--ct-bg-secondary)', border: '1px solid var(--ct-border)', borderRadius: '6px', padding: '6px', color: 'var(--ct-text-secondary)', cursor: 'pointer' }}
-                  title="Edit Application"
-                >
-                  <Edit2 size={14} />
-                </button>
+              <div className="application-list-footer">
+                <span className={`badge ${statusClass[app.status]}`}>{app.status}</span>
+                <div className="application-list-actions">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigate(`/applications/${app._id}`); }}
+                    className="icon-btn application-row-action"
+                    title="View Details"
+                    aria-label={`View ${app.title}`}
+                  >
+                    <Eye size={14} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigate(`/applications/edit/${app._id}`, { state: { application: app } }); }}
+                    className="icon-btn application-row-action"
+                    title="Edit Application"
+                    aria-label={`Edit ${app.title}`}
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           ))
