@@ -1,13 +1,12 @@
 import 'server-only';
 import { cookies, headers } from 'next/headers';
-
-const API_BASE = process.env.INTERNAL_API_URL || `http://127.0.0.1:${process.env.PORT || 3000}/api`;
+import { getApiBaseUrl } from './apiBase.js';
 
 export async function getPrivateData(path) {
   const token = (await cookies()).get('careertrack_session')?.value;
   const requestHeaders = await headers();
   if (!token) return null;
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       ...(process.env.API_KEY ? { 'x-api-key': process.env.API_KEY } : {}),

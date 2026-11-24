@@ -2,8 +2,7 @@
 
 import { cookies, headers as getRequestHeaders } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-const API_BASE = process.env.INTERNAL_API_URL || `http://127.0.0.1:${process.env.PORT || 3000}/api`;
+import { getApiBaseUrl } from '../lib/apiBase.js';
 
 /** Server-only bridge to the private Express service. Never expose backend keys to the browser. */
 export async function requestApi(method, path, payload) {
@@ -20,7 +19,7 @@ export async function requestApi(method, path, payload) {
     ...(process.env.APP_KEY ? { 'x-app-key': process.env.APP_KEY } : {}),
     ...(requestHeaders.get('x-client-ip') ? { 'x-rate-limit-client-ip': requestHeaders.get('x-client-ip') } : {}),
   };
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method,
     headers,
     ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
